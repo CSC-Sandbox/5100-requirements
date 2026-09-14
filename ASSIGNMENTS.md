@@ -2,7 +2,7 @@
 
 | Student | Assigned Feature(s) | Points |
 |---|---|---:|
-| Aiden Rodriguez | #3 Receive Message + #16 Send Message | 12 |
+| Aiden Rodriguez | #38 Detect Malformed Messages | 4 |
 | Adrian Valenzuela | #4 Monitor Data Availability | 4 |
 | Paul Motter | #8 Display Real-Time Robot Pose | 8 |
 | William Liu | #9 Gather Robot State | 8 |
@@ -14,3 +14,10 @@
 | Juan Gonzalez | #31 Display Real-Time Affective State | 8 |
 | Dylan Gururajan | #36 Display Recent Data Activity | 4 |
 | Jess Alencaster | #37 Display LiDAR Map | 8 |
+
+## Instructor-Provided Features
+
+| Feature | Role |
+|---|---|
+| #3 Receive Message | Course-provided Broker infrastructure |
+| #16 Send Message | Course-provided Broker infrastructure |
