@@ -13,11 +13,16 @@ public class DecryptMessage {
         while (!Objects.equals(encryptedMessage, "/quit")) {
             encryptedMessage = scanner.nextLine();
             if (!Objects.equals(encryptedMessage, "/quit")) {
-                String decryptedMessage = Encryption.decrypt(encryptedMessage);
+                String decryptedMessage = DecryptMessage.decryptMessage(encryptedMessage);
                 System.out.println("Encrypted: " + encryptedMessage);
                 System.out.println("Decrypted: " + decryptedMessage);
             }
         }
         scanner.close();
+    }
+
+    // Utility class to return a decrypted message from a string input.
+    public static String decryptMessage(String encryptedMessage) {
+        return Encryption.decrypt(encryptedMessage);
     }
 }
