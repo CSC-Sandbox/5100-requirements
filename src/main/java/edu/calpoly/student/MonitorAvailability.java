@@ -32,4 +32,28 @@ public class MonitorAvailability {
 
         return System.currentTimeMillis() - lastTime <= TIMEOUT_MS;
     }
+    private void processMessage(String message) {
+        String[] parts = message.split(",");
+
+        if (parts.length == 0) {
+            return;
+        }
+
+        String source = parts[0];
+
+        recordMessage(source);
+    }
+    public static void main(String[] args) {
+        MonitorAvailability monitor = new MonitorAvailability();
+
+        Broker broker = new Broker("localhost", 5000);
+
+        while (true) {
+            String message = broker.receive();
+
+            monitor.processMessage(message);
+
+            System.out.println(message);
+        }
+    }
 }
