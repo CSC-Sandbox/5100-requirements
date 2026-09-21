@@ -1,19 +1,43 @@
 package edu.calpoly.displayEye;
 
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.Insets;
-import javax.swing.JPanel;
+import java.awt.*;
+import javax.swing.*;
 
 // The visualization of the current gaze position as a red dot
 public class GazeArea extends JPanel {
     public final GazePoint gazePoint = new GazePoint(0.5, 0.5);
 
+    GazeArea() {
+        super();
+
+        setLayout(new BorderLayout());
+
+        // North border layout for the (0, 0) and (1, 0) labels
+        JPanel topGazeArea = new JPanel(new BorderLayout());
+        topGazeArea.setOpaque(false);
+        topGazeArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        JLabel labelNW = new JLabel("(0.0, 0.0)");
+        JLabel labelNE = new JLabel("(1.0, 0.0)");
+        topGazeArea.add(labelNW, BorderLayout.WEST);
+        topGazeArea.add(labelNE, BorderLayout.EAST);
+
+        // South border layout for the (0, 1) and (1, 1) labels
+        JPanel bottomGazeArea = new JPanel(new BorderLayout());
+        bottomGazeArea.setOpaque(false);
+        bottomGazeArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        JLabel labelSW = new JLabel("(0.0, 1.0)");
+        JLabel labelSE = new JLabel("(1.0, 1.0)");
+        bottomGazeArea.add(labelSW, BorderLayout.WEST);
+        bottomGazeArea.add(labelSE, BorderLayout.EAST);
+
+        add(topGazeArea, BorderLayout.NORTH);
+        add(bottomGazeArea, BorderLayout.SOUTH);
+    }
+
     protected void paintComponent(Graphics g) {
         // Repaint as normal first
         super.paintComponent(g);
-        int radius = 15;
+        int radius = 20;
 
         // Calculate actual width and height not including borders
         Insets insets = getInsets();

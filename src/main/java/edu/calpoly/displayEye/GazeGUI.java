@@ -22,26 +22,26 @@ public class GazeGUI {
                 BorderFactory.createLineBorder(Color.BLACK, 2)
         ));
         gazeArea.setOpaque(false); // Background transparent
-        gazeArea.setLayout(new BorderLayout());
-
-        // North border layout for the (0, 0) and (1, 0) labels
-        JPanel topGazeArea = new JPanel(new BorderLayout());
-        topGazeArea.setOpaque(false);
-        JLabel labelNW = new JLabel("(0.0, 0.0)");
-        JLabel labelNE = new JLabel("(1.0, 0.0)");
-        topGazeArea.add(labelNW, BorderLayout.WEST);
-        topGazeArea.add(labelNE, BorderLayout.EAST);
-
-        // South border layout for the (0, 1) and (1, 1) labels
-        JPanel bottomGazeArea = new JPanel(new BorderLayout());
-        bottomGazeArea.setOpaque(false);
-        JLabel labelSW = new JLabel("(0.0, 1.0)");
-        JLabel labelSE = new JLabel("(1.0, 1.0)");
-        bottomGazeArea.add(labelSW, BorderLayout.WEST);
-        bottomGazeArea.add(labelSE, BorderLayout.EAST);
-
-        gazeArea.add(topGazeArea, BorderLayout.NORTH);
-        gazeArea.add(bottomGazeArea, BorderLayout.SOUTH);
+//        gazeArea.setLayout(new BorderLayout());
+//
+//        // North border layout for the (0, 0) and (1, 0) labels
+//        JPanel topGazeArea = new JPanel(new BorderLayout());
+//        topGazeArea.setOpaque(false);
+//        JLabel labelNW = new JLabel("(0.0, 0.0)");
+//        JLabel labelNE = new JLabel("(1.0, 0.0)");
+//        topGazeArea.add(labelNW, BorderLayout.WEST);
+//        topGazeArea.add(labelNE, BorderLayout.EAST);
+//
+//        // South border layout for the (0, 1) and (1, 1) labels
+//        JPanel bottomGazeArea = new JPanel(new BorderLayout());
+//        bottomGazeArea.setOpaque(false);
+//        JLabel labelSW = new JLabel("(0.0, 1.0)");
+//        JLabel labelSE = new JLabel("(1.0, 1.0)");
+//        bottomGazeArea.add(labelSW, BorderLayout.WEST);
+//        bottomGazeArea.add(labelSE, BorderLayout.EAST);
+//
+//        gazeArea.add(topGazeArea, BorderLayout.NORTH);
+//        gazeArea.add(bottomGazeArea, BorderLayout.SOUTH);
 
         // Actually add it to the panel
         panel.add(gazeArea, BorderLayout.WEST);
