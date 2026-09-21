@@ -2,6 +2,7 @@ package edu.calpoly.security;
 
 import edu.calpoly.provided.Encryption;
 
+import java.security.GeneralSecurityException;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -14,8 +15,11 @@ public class DecryptMessage {
             encryptedMessage = scanner.nextLine();
             if (!Objects.equals(encryptedMessage, "/quit")) {
                 String decryptedMessage = DecryptMessage.decryptMessage(encryptedMessage);
-                System.out.println("Encrypted: " + encryptedMessage);
-                System.out.println("Decrypted: " + decryptedMessage);
+                // Message was successfully decrypted (if not, then skip the below output)
+                if (decryptedMessage != null) {
+                    System.out.println("Encrypted: " + encryptedMessage);
+                    System.out.println("Decrypted: " + decryptedMessage);
+                }
             }
         }
         scanner.close();
@@ -23,6 +27,13 @@ public class DecryptMessage {
 
     // Utility class to return a decrypted message from a string input.
     public static String decryptMessage(String encryptedMessage) {
-        return Encryption.decrypt(encryptedMessage);
+        try {
+            return Encryption.decrypt(encryptedMessage);
+        } catch (IllegalArgumentException e) {
+            // Output error with reason, then continue.
+            System.out.println("Error occurred:" + e.toString());
+            // String couldn't be decrypted, return null
+            return null;
+        }
     }
 }
