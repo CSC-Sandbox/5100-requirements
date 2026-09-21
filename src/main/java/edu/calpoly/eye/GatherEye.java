@@ -1,5 +1,6 @@
 package edu.calpoly.eye;
 
+import javax.swing.JLabel;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.event.MouseAdapter;
@@ -12,6 +13,7 @@ public class GatherEye {
         frame.setSize(800, 600);
 
         JPanel screen = new JPanel();
+        JLabel gazeLabel = new JLabel("Gaze X: 0.00, Gaze Y: 0.00");
 
         screen.addMouseListener(new MouseAdapter() {
             @Override
@@ -20,13 +22,13 @@ public class GatherEye {
                 int y = e.getY();
                 double normalizedX = (double) x / screen.getWidth();
                 double normalizedY = (double) y / screen.getHeight();
-
+                gazeLabel.setText("Gaze X: " + normalizedX + ", Gaze Y: " + normalizedY);
                 System.out.println("X: " + normalizedX + ", Y: " + normalizedY);
             }
         });
 
         frame.add(screen);
-
+        frame.add(gazeLabel, "South");
         frame.setVisible(true);
     }
 }
