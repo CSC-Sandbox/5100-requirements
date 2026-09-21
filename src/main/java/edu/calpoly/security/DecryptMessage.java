@@ -2,7 +2,6 @@ package edu.calpoly.security;
 
 import edu.calpoly.provided.Encryption;
 
-import java.security.GeneralSecurityException;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -31,7 +30,7 @@ public class DecryptMessage {
             return Encryption.decrypt(encryptedMessage);
         } catch (IllegalArgumentException e) {
             // Output error with reason, then continue.
-            System.out.println("Error occurred:" + e.toString());
+            System.out.println("Error occurred:" + e);
             // String couldn't be decrypted, return null
             return null;
         }
