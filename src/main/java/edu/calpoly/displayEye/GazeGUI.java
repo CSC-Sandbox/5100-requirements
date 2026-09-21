@@ -1,13 +1,11 @@
 package edu.calpoly.displayEye;
 
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+import javax.swing.*;
 import java.awt.*;
 
 public class GazeGUI {
     private final GazeArea gazeArea;
+    private final GazeInfo gazeInfo;
     private final JPanel panel;
 
     GazeGUI(int width, int height) {
@@ -22,29 +20,15 @@ public class GazeGUI {
                 BorderFactory.createLineBorder(Color.BLACK, 2)
         ));
         gazeArea.setOpaque(false); // Background transparent
-//        gazeArea.setLayout(new BorderLayout());
-//
-//        // North border layout for the (0, 0) and (1, 0) labels
-//        JPanel topGazeArea = new JPanel(new BorderLayout());
-//        topGazeArea.setOpaque(false);
-//        JLabel labelNW = new JLabel("(0.0, 0.0)");
-//        JLabel labelNE = new JLabel("(1.0, 0.0)");
-//        topGazeArea.add(labelNW, BorderLayout.WEST);
-//        topGazeArea.add(labelNE, BorderLayout.EAST);
-//
-//        // South border layout for the (0, 1) and (1, 1) labels
-//        JPanel bottomGazeArea = new JPanel(new BorderLayout());
-//        bottomGazeArea.setOpaque(false);
-//        JLabel labelSW = new JLabel("(0.0, 1.0)");
-//        JLabel labelSE = new JLabel("(1.0, 1.0)");
-//        bottomGazeArea.add(labelSW, BorderLayout.WEST);
-//        bottomGazeArea.add(labelSE, BorderLayout.EAST);
-//
-//        gazeArea.add(topGazeArea, BorderLayout.NORTH);
-//        gazeArea.add(bottomGazeArea, BorderLayout.SOUTH);
 
         // Actually add it to the panel
         panel.add(gazeArea, BorderLayout.WEST);
+
+        // Create and add the info sidebar taking up the rest of the space
+        gazeInfo = new GazeInfo();
+        gazeInfo.setOpaque(false);
+
+        panel.add(gazeInfo, BorderLayout.CENTER);
     }
 
     public void addToFrame(JFrame frame) {
@@ -53,7 +37,16 @@ public class GazeGUI {
 
     public void update(GazePoint gazePoint) {
         // Update stored XY and queue a repaint
-        gazeArea.gazePoint.setXY(gazePoint.x, gazePoint.y);
+        gazeArea.setGazePoint(gazePoint);
         gazeArea.repaint();
+
+        gazeInfo.setGazePoint(gazePoint);
+        gazeInfo.conStatus = true;
+        gazeInfo.repaint();
+    }
+
+    public void disconnected() {
+        gazeInfo.conStatus = false;
+        gazeInfo.repaint();
     }
 }

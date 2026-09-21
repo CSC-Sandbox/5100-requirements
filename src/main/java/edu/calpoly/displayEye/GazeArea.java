@@ -58,4 +58,8 @@ public class GazeArea extends JPanel {
         g2.setColor(Color.red);
         g2.fillOval(panelX - radius, panelY - radius, 2 * radius, 2 * radius);
     }
+
+    public void setGazePoint(GazePoint gazePoint) {
+        this.gazePoint.setXY(gazePoint.x, gazePoint.y);
+    }
 }

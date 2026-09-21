@@ -1,8 +1,7 @@
 package edu.calpoly.displayEye;
 
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 import edu.calpoly.provided.Broker;
 
@@ -64,7 +63,6 @@ public class GazeBroker {
             }
         } catch (IllegalStateException e) {
             // TODO: Disconnected
-            return;
         }
     }
 }

@@ -2,6 +2,7 @@ package edu.calpoly.displayEye;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 public class DisplayEye {
     private final int width = 800;
@@ -10,7 +11,7 @@ public class DisplayEye {
     private final GazeGUI gui;
 
     DisplayEye() {
-        broker = new GazeBroker("localhost", 5000, true);
+        broker = new GazeBroker("localhost", 5000, false);
         gui = new GazeGUI(width, height);
     }
 
@@ -27,7 +28,7 @@ public class DisplayEye {
         displayEye.gui.addToFrame(frame);
         frame.setVisible(true);
 
-        // Start receiving mesages
+        // Start receiving messages
         displayEye.broker.loopForever(displayEye.gui::update);
     }
 }
