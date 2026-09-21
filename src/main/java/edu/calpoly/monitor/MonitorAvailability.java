@@ -1,4 +1,4 @@
-package edu.calpoly.student;
+package edu.calpoly.monitor;
 
 import edu.calpoly.provided.Broker;
 
