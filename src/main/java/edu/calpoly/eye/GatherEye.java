@@ -18,8 +18,10 @@ public class GatherEye {
             public void mouseClicked(MouseEvent e) {
                 int x = e.getX();
                 int y = e.getY();
+                double normalizedX = (double) x / screen.getWidth();
+                double normalizedY = (double) y / screen.getHeight();
 
-                System.out.println("X: " + x + ", Y: " + y);
+                System.out.println("X: " + normalizedX + ", Y: " + normalizedY);
             }
         });
 
