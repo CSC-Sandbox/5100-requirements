@@ -4,10 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GazeInfo extends JPanel{
+    public boolean conStatus;
     public final GazePoint gazePoint;
     public final JLabel xLabel;
     public final JLabel yLabel;
-    public boolean conStatus;
     public final JLabel statusText;
 
     GazeInfo() {

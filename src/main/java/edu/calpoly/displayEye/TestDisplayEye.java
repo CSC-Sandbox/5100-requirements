@@ -22,8 +22,8 @@ public class TestDisplayEye {
                     System.out.println("DisplayEye connected. Sending test sequence...");
 
                     // Choose one to test
-                    // sendSnake(out);
-                    sendInvalidTests(out);
+                    sendSnake(out);
+                    // sendInvalidTests(out);
                 } catch (IOException e) {
                     System.out.println("DisplayEye disconnected. Waiting for another connection...");
                 }

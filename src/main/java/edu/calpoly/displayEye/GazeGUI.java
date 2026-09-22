@@ -44,9 +44,4 @@ public class GazeGUI {
         gazeInfo.conStatus = true;
         gazeInfo.repaint();
     }
-
-    public void disconnected() {
-        gazeInfo.conStatus = false;
-        gazeInfo.repaint();
-    }
 }
