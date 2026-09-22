@@ -12,6 +12,7 @@ public class EnterMessages extends JFrame {
     EnterMessages(Broker broker) {
 
         super("Send Messages");
+        setLocationRelativeTo(null);
         setSize(400, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -61,7 +62,7 @@ public class EnterMessages extends JFrame {
 
     public static void main(String[] args) {
         var broker = new Broker("localhost", 5000);
-        var messageButton = new EnterMessages(broker);
+        new EnterMessages(broker);
 
     }
 
