@@ -9,7 +9,7 @@ public class EnterMessages extends JFrame {
     private final JTextField textField;
     private final Broker broker;
 
-    EnterMessages(Broker broker) {
+    public EnterMessages(Broker broker) {
 
         super("Send Messages");
         setLocationRelativeTo(null);
