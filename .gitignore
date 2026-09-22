@@ -1,2 +1,5 @@
+# macOS
 .DS_Store
-target
+
+# Maven build output
+target/
