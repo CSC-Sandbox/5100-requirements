@@ -1,15 +1,12 @@
-package edu.calpoly.gui;
+package edu.calpoly.displayMessage;
 
 import edu.calpoly.provided.Broker;
 
 import java.awt.*;
 import java.time.LocalTime;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.text.DefaultCaret;
 import javax.swing.*;
 
-public class DisplayMessages extends JComponent{
+public class DisplayMessages extends JComponent {
     private final JScrollPane scrollPane;
     private final JTextArea logArea;
 
@@ -40,7 +37,7 @@ public class DisplayMessages extends JComponent{
             frame.add(display);
             frame.setVisible(true);
         });
-
+        
         while (true) {
             var msg = broker.receive();
             display.appendLog(msg);
@@ -48,16 +45,16 @@ public class DisplayMessages extends JComponent{
     }
 
     public void appendLog(String msg) {
-        SwingUtilities.invokeLater(() -> {
-            logArea.append(formatMessage(msg));
-        });
+        SwingUtilities.invokeLater(() ->
+                logArea.append(formatMessage(msg))
+        );
 
     }
 
     private String formatMessage(String message) {
         var time = LocalTime.now();
 
-        return String.format("[%tT] %s %n", time, message );
+        return String.format("[%tT] %s %n", time, message);
 
     }
 
