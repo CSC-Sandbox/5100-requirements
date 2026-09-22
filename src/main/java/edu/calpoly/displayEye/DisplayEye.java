@@ -11,7 +11,7 @@ public class DisplayEye {
     private final GazeGUI gui;
 
     DisplayEye() {
-        broker = new GazeBroker("localhost", 5000, false);
+        broker = new GazeBroker("localhost", 5000, true);
         gui = new GazeGUI(width, height);
     }
 
