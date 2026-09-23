@@ -2,36 +2,64 @@
 
 ### MonitorAvailability.java
 
-- Monitors the availability of Robot, Gaze, Affect, and LiDAR data sources.
+- Monitors the communication availability of Robot, Gaze, Affect, and LiDAR.
 - Receives messages through the provided `Broker`.
-- Tracks the most recent message time for each source.
-- Marks a source as `UNAVAILABLE` if more than one second passes without receiving data.
-- Uses a Java Swing GUI to display the current status of all four sources.
-- Uses a background thread for receiving messages and a Swing timer for periodically refreshing source availability.
+- Tracks the most recent message time for each monitored source.
+- Marks a source as `UNAVAILABLE` when more than one second passes without receiving data.
+- Changes the source back to `AVAILABLE` when communication resumes.
+- Displays the current status of all four sources using a Java Swing GUI.
+- Records communication failures when a previously available source becomes unavailable.
+- Stores the affected component and timestamp for each recorded communication failure.
+
+### CommunicationFailure
+
+- A Java record contained within `MonitorAvailability`.
+- Represents a detected communication failure.
+- Stores:
+  - The affected component.
+  - The timestamp when the failure was detected.
 
 ## Design Decisions
 
 - Using the provided `Broker`
-    - The assignment provides the communication infrastructure, so no additional socket or networking abstraction was created.
+  - The assignment provides the communication infrastructure, so no additional socket or networking abstraction was created.
 
-- Tracking only the most recent timestamp for each source
-    - The availability monitor only needs to determine whether each source has produced data within the last second.
-    - Storing complete message histories would add unnecessary complexity.
+- Tracking the most recent timestamp for each source
+  - Availability only depends on whether a source has communicated within the previous second.
+  - Complete sensor messages do not need to be stored.
 
-- Keeping the implementation in a single class
-    - The monitoring application has a small, focused responsibility.
-    - Additional classes were not introduced unless needed by the functionality.
+- Recording availability transitions
+  - A communication failure is recorded only when a source changes from `AVAILABLE` to `UNAVAILABLE`.
+  - This prevents the same outage from being recorded repeatedly while a source remains unavailable.
+  - Sources that have never communicated are not recorded as communication failures when the application starts.
+
+- Recording the affected component and timestamp
+  - Each detected failure is stored as a `CommunicationFailure`.
+  - The application maintains a history of recorded failures that can be accessed through `getCommunicationFailures()`.
 
 - Using a background receiver thread
-    - `Broker.receive()` waits for incoming messages, so receiving data on a separate thread prevents it from blocking the Swing interface.
+  - `Broker.receive()` waits for incoming messages.
+  - Running message reception on a separate thread prevents it from blocking the Swing interface.
 
-- Using a Swing timer for availability updates
-    - Availability must change even when a source stops sending messages, so the GUI periodically checks each source's last-received timestamp.
+- Using a Swing timer
+  - The GUI checks source availability every 100 milliseconds.
+  - This allows a source to become `UNAVAILABLE` even when no new message arrives from that source.
+
+- Using thread-safe collections
+  - Message reception and GUI updates occur on different threads.
+  - `ConcurrentHashMap` and `CopyOnWriteArrayList` are used so shared monitoring data can be safely accessed.
 
 ## Running Tests
 
 1. Start `TestMonitorData.java`.
 2. Start `MonitorAvailability.java`.
-3. Verify that all four sources initially become `AVAILABLE`.
-4. Observe each source becoming `UNAVAILABLE` during its simulated outage.
-5. Verify that the source returns to `AVAILABLE` when messages resume.
+3. Verify that Robot, Gaze, Affect, and LiDAR become `AVAILABLE`.
+4. Wait for the tester to simulate an outage.
+5. Verify that the affected source becomes `UNAVAILABLE` after more than one second.
+6. Verify that the other sources remain `AVAILABLE`.
+7. Check the console for a recorded communication failure containing:
+  - The affected source.
+  - The timestamp of the failure.
+8. Verify that only one failure is recorded for the outage.
+9. Verify that the source returns to `AVAILABLE` when messages resume.
+10. Continue running the tester and verify the same behavior for each monitored source.
