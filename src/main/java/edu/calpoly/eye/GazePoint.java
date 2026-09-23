@@ -1,7 +1,8 @@
-package edu.calpoly.displayEye;
+package edu.calpoly.eye;
 
 // Literally just a class to hold an (x,y) coordinate
 public class GazePoint {
+
     public double x;
     public double y;
 

@@ -14,8 +14,7 @@ public final class ActivityTracker {
 
     private final long windowNanos;
     private final LongSupplier timeSource;
-    private final EnumMap<DataSource, ArrayDeque<Long>> messageTimes =
-            new EnumMap<>(DataSource.class);
+    private final EnumMap<DataSource, ArrayDeque<Long>> messageTimes = new EnumMap<>(DataSource.class);
 
     // Uses the standard 60-second window.
     public ActivityTracker() {

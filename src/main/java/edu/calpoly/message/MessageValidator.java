@@ -1,4 +1,4 @@
-package edu.calpoly.provided;
+package edu.calpoly.message;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

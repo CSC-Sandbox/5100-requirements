@@ -30,7 +30,7 @@ public class Robot {
         this(DEFAULT_DATA,new RobotDisplay(imageResolutionWidth, imageResolutionHeight));
     };
 
-    // Helper private contructor 
+    // Helper private constructor
     private Robot(RobotMessage initData, RobotDisplay display){
         data = initData;
         lastUpdated = new Date();

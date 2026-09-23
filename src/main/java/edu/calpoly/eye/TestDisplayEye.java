@@ -1,4 +1,4 @@
-package edu.calpoly.displayEye;
+package edu.calpoly.eye;
 
 import java.io.*;
 import java.net.*;

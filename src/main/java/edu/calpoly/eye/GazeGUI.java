@@ -1,9 +1,10 @@
-package edu.calpoly.displayEye;
+package edu.calpoly.eye;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class GazeGUI {
+
     private final GazeArea gazeArea;
     private final GazeInfo gazeInfo;
     private final JPanel panel;

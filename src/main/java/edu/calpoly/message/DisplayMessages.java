@@ -1,4 +1,4 @@
-package edu.calpoly.displayMessage;
+package edu.calpoly.message;
 
 import edu.calpoly.provided.Broker;
 
@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import javax.swing.*;
 
 public class DisplayMessages extends JComponent {
+
     private final JScrollPane scrollPane;
     private final JTextArea logArea;
 

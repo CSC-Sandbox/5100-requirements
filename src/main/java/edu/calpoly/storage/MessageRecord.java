@@ -1,4 +1,4 @@
-package edu.calpoly.provided;
+package edu.calpoly.storage;
 
 
 public class MessageRecord {

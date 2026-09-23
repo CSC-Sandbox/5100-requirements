@@ -1,9 +1,10 @@
-package edu.calpoly.displayEye;
+package edu.calpoly.eye;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class GazeInfo extends JPanel{
+
     public boolean conStatus;
     public final GazePoint gazePoint;
     public final JLabel xLabel;

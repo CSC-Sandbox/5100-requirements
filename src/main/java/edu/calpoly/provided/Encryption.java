@@ -9,7 +9,13 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-/** Course-provided encryption utility for CSC 5100. */
+/**
+ * Utility class for encrypting and decrypting messages using AES-GCM.
+ * This class is designed to be used in a secure communication context.
+ *
+ *  @author Javier Gonzalez-Sanchez (javiergs)
+ *  @version 1.0 (2026-09-01)
+ */
 public final class Encryption {
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static final byte[] KEY_BYTES = "CSC5100-SECURE!!".getBytes(StandardCharsets.UTF_8);

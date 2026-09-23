@@ -9,7 +9,6 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 
-
 public class RobotDisplay extends JPanel {
     // Class variables for uniformity.
     private static final int DEFAULT_HEIGHT = 640;

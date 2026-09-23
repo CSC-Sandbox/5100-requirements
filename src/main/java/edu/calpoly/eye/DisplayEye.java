@@ -1,8 +1,6 @@
-package edu.calpoly.displayEye;
+package edu.calpoly.eye;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.concurrent.TimeUnit;
 
 public class DisplayEye {
     private final int width = 800;

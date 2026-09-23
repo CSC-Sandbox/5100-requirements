@@ -6,7 +6,13 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-/** Course-provided communication abstraction for CSC 5100. */
+/**
+ * Course-provided communication abstraction for CSC 3100 and 5100
+ * This class is used to send and receive messages to/from a server over TCP sockets.
+ *
+ * @author Javier Gonzalez-Sanchez (javiergs)
+ * @version 1.0 (2026-09-01)
+ */
 public class Broker {
     private final String host;
     private final int port;

@@ -1,4 +1,4 @@
-package edu.calpoly.displayEye;
+package edu.calpoly.eye;
 
 import java.util.function.Consumer;
 import java.util.regex.*;
@@ -6,6 +6,7 @@ import java.util.regex.*;
 import edu.calpoly.provided.Broker;
 
 public class GazeBroker {
+
     private boolean debug; // Debug flag for logging
     private final Broker broker;
     private final GazePoint gazePoint;
