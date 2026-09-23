@@ -27,18 +27,22 @@ public class TestStoreMessages {
       System.err.println("Missing test data: " + INPUT_FILE.toAbsolutePath());
       return;
     }
-    List<String> messages = Files.readAllLines(INPUT_FILE, StandardCharsets.UTF_8).stream().filter(l -> !l.isBlank()).toList();
+    List<String> messages = Files.readAllLines(INPUT_FILE, StandardCharsets.UTF_8).stream().filter(l ->
+        !l.isBlank()).toList();
     System.out.println("TestStoreMessages");
     System.out.println("Input: " + INPUT_FILE);
     System.out.println("Messages to send: " + messages.size());
     System.out.println("Waiting for StoreMessages on localhost:" + PORT + " ...");
-    try (ServerSocket server = new ServerSocket(PORT); Socket socket = server.accept(); BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8)); PrintWriter out = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8)) {
+    try (
+        ServerSocket server = new ServerSocket(PORT); Socket socket = server.accept();
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8)) {
       String request = in.readLine();
       if (!"RECEIVE".equals(request)) {
         System.err.println("Expected RECEIVE handshake but got: " + request);
         return;
       }
-      System.out.println("StoreMessages connected. Sending test data...");
+      System.out.println("StoreMessages connected. Sending test data...")
       for (String message : messages) {
         out.println(message);
         System.out.println("  SENT: " + message);

@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Test program for the MessageValidator class.
- *
+ * <p>
  * Course-provided test program for Story #38:
  * Testing the MessageValidator class.
  *
