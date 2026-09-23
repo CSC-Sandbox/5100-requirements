@@ -42,7 +42,7 @@ public class TestStoreMessages {
         System.err.println("Expected RECEIVE handshake but got: " + request);
         return;
       }
-      System.out.println("StoreMessages connected. Sending test data...")
+      System.out.println("StoreMessages connected. Sending test data...");
       for (String message : messages) {
         out.println(message);
         System.out.println("  SENT: " + message);
