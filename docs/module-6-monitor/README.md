@@ -1,49 +1,65 @@
-# Recent Data Activity Monitor
-
-`DisplayDataActivity` is a Swing application that shows the number of Robot,
-Gaze, Affect, and LiDAR messages received during a moving 60-second window.
-The count labels and comparison bars refresh four times per second, including
-when no new messages arrive, so expired messages disappear automatically.
-
 ## Design
 
-The implementation is in `edu.calpoly.monitor` and uses three classes:
+### MonitorAvailability.java
 
-- `DisplayDataActivity` builds the Swing interface, receives messages from the
-  course-provided `Broker` on a daemon thread, and routes each recognized first
-  field to the tracker. A Swing timer refreshes all four displayed counts every
-  250 ms, including when no new messages arrive.
-- `ActivityTracker` maintains one timestamp queue per `DataSource`. Its
-  synchronized API lets the receiver thread record messages while Swing reads
-  snapshots safely. Both recording and snapshot creation discard timestamps
-  older than 60 seconds.
-- `DataSource` defines Robot, Gaze, Affect, and LiDAR and parses the source name
-  from the first message field.
+- Monitors the communication availability of Robot, Gaze, Affect, and LiDAR.
+- Receives messages through the provided `Broker`.
+- Tracks the most recent message time for each monitored source.
+- Marks a source as `UNAVAILABLE` when more than one second passes without receiving data.
+- Changes the source back to `AVAILABLE` when communication resumes.
+- Displays the current status of all four sources using a Java Swing GUI.
+- Records communication failures when a previously available source becomes unavailable.
+- Stores the affected component and timestamp for each recorded communication failure.
 
-The provided `Broker` class is used without modification.
+### CommunicationFailure
 
-## Build and test with the provided simulator
+- A Java record contained within `MonitorAvailability`.
+- Represents a detected communication failure.
+- Stores:
+  - The affected component.
+  - The timestamp when the failure was detected.
 
-Java 17 and Maven are required. Compile the project from the repository root:
+## Design Decisions
 
-```bash
-mvn package
-```
+- Using the provided `Broker`
+  - The assignment provides the communication infrastructure, so no additional socket or networking abstraction was created.
 
-In one terminal, start the course-provided data simulator and leave it running:
+- Tracking the most recent timestamp for each source
+  - Availability only depends on whether a source has communicated within the previous second.
+  - Complete sensor messages do not need to be stored.
 
-```bash
-java -cp target/classes edu.calpoly.provided.TestMonitorData
-```
+- Recording availability transitions
+  - A communication failure is recorded only when a source changes from `AVAILABLE` to `UNAVAILABLE`.
+  - This prevents the same outage from being recorded repeatedly while a source remains unavailable.
+  - Sources that have never communicated are not recorded as communication failures when the application starts.
 
-In a second terminal, start the activity dashboard:
+- Recording the affected component and timestamp
+  - Each detected failure is stored as a `CommunicationFailure`.
+  - The application maintains a history of recorded failures that can be accessed through `getCommunicationFailures()`.
 
-```bash
-java -cp target/classes edu.calpoly.monitor.DisplayDataActivity
-```
+- Using a background receiver thread
+  - `Broker.receive()` waits for incoming messages.
+  - Running message reception on a separate thread prevents it from blocking the Swing interface.
 
-The four counts should rise at different rates. After the application has run
-for at least 60 seconds, a simulated source outage causes that source's count
-to fall as its older messages leave the window. Once the source resumes, its
-new messages are included automatically; its count may initially remain level
-while equally old messages expire. No manual refresh is needed.
+- Using a Swing timer
+  - The GUI checks source availability every 100 milliseconds.
+  - This allows a source to become `UNAVAILABLE` even when no new message arrives from that source.
+
+- Using thread-safe collections
+  - Message reception and GUI updates occur on different threads.
+  - `ConcurrentHashMap` and `CopyOnWriteArrayList` are used so shared monitoring data can be safely accessed.
+
+## Running Tests
+
+1. Start `TestMonitorData.java`.
+2. Start `MonitorAvailability.java`.
+3. Verify that Robot, Gaze, Affect, and LiDAR become `AVAILABLE`.
+4. Wait for the tester to simulate an outage.
+5. Verify that the affected source becomes `UNAVAILABLE` after more than one second.
+6. Verify that the other sources remain `AVAILABLE`.
+7. Check the console for a recorded communication failure containing:
+  - The affected source.
+  - The timestamp of the failure.
+8. Verify that only one failure is recorded for the outage.
+9. Verify that the source returns to `AVAILABLE` when messages resume.
+10. Continue running the tester and verify the same behavior for each monitored source.
