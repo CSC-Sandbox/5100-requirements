@@ -1,14 +1,16 @@
 ## Design
 
-### Robot.java
+### RobotGUI.java
 
-- Manages a robot at a high level and is what would primarily be interacted with. Decides when to update the displays and stores a copy of passed update data. Manages the composition of the `RobotDisplay` and `RobotDataPanel`
-    - **Instantiating**: Can decide the resolution of visualization.
+- Manages a robot GUI at a high level and is what would primarily be interacted with. Decides when to update the displays and decides what to display. Manages the composition of the `RobotDisplayPanel` and `RobotDataPanel`
+    - **Instantiating**: creates a blank instance.
+    - **Show DataPanel**: Shows or hides the data panel.
+    - **Show RobotPanel**: Shows or hides the data panel.
     - **Updating**: Re-draws the visualization and updates data.
     - **Add to frame**: Adds the visualization to a JFrame.
     - **Toggle showData**: Decides whether to display robot data in addition to the visualization.
 
-### RobotDisplay.java
+### RobotDisplayPanel.java
 
 - Manages the display of the robot. Resizing to fit the container. Drawing and storing a 6 segmented arm into a BufferedImage and then displayed.
 
@@ -19,6 +21,10 @@
 ### RobotMessage.java
 
 - A data class for parsing "ROBOT" messages. Also allows for deep copying and a formatted `toString()`. Is used to update Robot instances.
+
+### RobotBlackBoard.java
+
+- A class used to post updates. A registered callback function will be called on every post. One use is to register the `RobotGUI::update` function to automatic calls to update the GUI.
 
 ## Design Decisions
 
@@ -31,5 +37,4 @@
 ## Running Tests
 
 1. Start `TestDisplayRobot.java`.
-2. Start `DisplayRobot.java`
-    - Note: if you comment out `robot.showData(true);` the robot will render without the extra written data.
+2. Start `DisplayRobot.java`.
