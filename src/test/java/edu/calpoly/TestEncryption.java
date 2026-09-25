@@ -1,4 +1,6 @@
-package edu.calpoly.provided;
+package edu.calpoly;
+
+import edu.calpoly.provided.Encryption;
 
 /**
  * Course-provided encryption test class used to verify the correctness of the Encryption.java implementation.

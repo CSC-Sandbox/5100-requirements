@@ -1,4 +1,4 @@
-package edu.calpoly.provided;
+package edu.calpoly;
 
 import edu.calpoly.message.MessageValidator;
 

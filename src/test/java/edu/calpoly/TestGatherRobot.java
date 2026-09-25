@@ -1,4 +1,4 @@
-package edu.calpoly.provided;
+package edu.calpoly;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,26 +7,26 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Course-provided receiver used to test GatherEye.java.
+ * Course-provided receiver used to test GatherRobot.java.
  *
  * @author Javier Gonzalez-Sanchez (javiergs)
  * @version 1.0 (2026-09-01)
  */
-public class TestGatherEye {
+public class TestGatherRobot {
 
   private static final int PORT = 5000;
 
   public static void main(String[] args) {
-    System.out.println("Waiting for gaze data on localhost:" + PORT + "...");
-    System.out.println("Expected format: GAZE,X,Y");
+    System.out.println("Waiting for robot pose data on localhost:" + PORT + "...");
+    System.out.println("Expected format: ROBOT,J1,J2,J3,J4,J5,J6,X,Y,Z");
     try (ServerSocket server = new ServerSocket(PORT)) {
       while (true) {
         try (Socket socket = server.accept(); BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
           String m = in.readLine();
           if (m != null) {
-            System.out.println("Gaze Position Received");
+            System.out.println("Robot Pose Received");
             System.out.println(m);
-            if (!m.startsWith("GAZE,")) System.out.println("WARNING: message should begin with GAZE,");
+            if (!m.startsWith("ROBOT,")) System.out.println("WARNING: message should begin with ROBOT,");
           }
         }
       }
@@ -34,4 +34,5 @@ public class TestGatherEye {
       System.err.println("Test server stopped: " + e.getMessage());
     }
   }
+
 }
