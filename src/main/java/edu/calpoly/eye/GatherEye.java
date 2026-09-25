@@ -8,7 +8,22 @@ import java.awt.event.MouseEvent;
 
 import edu.calpoly.provided.Broker;
 
+/**
+ * Simulates an eye-tracking device using a Java Swing interface.
+ * Users click on the simulated screen to determine the current gaze
+ * position, which is normalized and published through the communication broker.
+ *
+ * @author Briggs
+ * @version September 25, 2026
+ */
 public class GatherEye {
+
+    /**
+     * Starts the simulated eye-tracking application and publishes gaze data
+     * whenever the user clicks on the screen.
+     *
+     * @param args command-line arguments
+     */
     public static void main(String[] args) {
         Broker broker = new Broker("localhost", 5000);
         JFrame frame = new JFrame("Gather Eye");

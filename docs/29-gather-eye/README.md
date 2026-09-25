@@ -47,6 +47,30 @@ The test was performed by:
 
 The top-left, center, and bottom-right areas of the screen were tested to verify that the normalized coordinates were approximately `0.0`, `0.5`, and `1.0` respectively.
 
+## Refactoring Opportunities
+
+The current implementation is intentionally small for the Sprint 1 feature. The following improvements could be considered as future work.
+
+Separate Gaze Calculation from the GUI
+
+The mouse-click handler currently receives the click, calculates normalized coordinates, creates the message, sends it, and updates the display. The coordinate calculation could be moved into a separate method or class.
+
+This would separate gaze-data processing from the user interface and make the coordinate calculation easier to test independently.
+
+Separate Communication from the GUI
+
+GatherEye currently creates and uses the provided Broker directly. A future version could introduce a small publishing interface between the application and the communication mechanism.
+
+This would reduce coupling and make it possible to replace the communication implementation without changing the GUI.
+
+Represent Gaze Data Explicitly
+
+The current implementation builds the message directly as a string in the form GAZE,X,Y. A future version could represent a gaze position with a small data class and convert it to the required message format separately.
+
+This would make the data contract clearer and make it easier to support additional communication formats later.
+
+These changes are intentionally documented as future work because the current implementation is small and satisfies the Sprint 1 requirements.
+
 ## Files
 
 * `src/main/java/edu/calpoly/eye/GatherEye.java` — Simulated eye-tracking application.
