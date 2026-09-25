@@ -6,6 +6,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.EnumMap;
 import java.util.Map;
 
+/**
+ * Validates messages, ensuring they follow protocol.
+ * Input must be a string. Can intake .csv or .json formats.
+ * The protocol for messaging includes the following:
+ * ROBOT: 9 numeric values: J1, J2, J3, J4, J5, J6, X, Y, Z
+ * GAZE: 2 numeric values: X, Y (each must be in [0.0, 1.0])
+ * AFFECT: 5 numeric values: focus, excitement, engagement, interest, stress (each must be in [0.0, 1.0])
+ * LIDAR 3 numeric values: X, Y, Z
+ *
+ * @author Aiden Rodriguez (Aiden-Rodriguez)
+ * @version 1.0 (2026-09-24)
+ */
+
 public class MessageValidator {
 
     public enum MessageType {
@@ -35,6 +48,12 @@ public class MessageValidator {
 
     private String lastError;
 
+    /**
+     * Validates a single message, in either CSV or JSON format.
+     *
+     * @param message the raw message text
+     * @return true if the message is valid, false otherwise.
+     */
     public boolean validate(String message) {
         lastError = null;
 
@@ -50,6 +69,10 @@ public class MessageValidator {
         return validateCsv(trimmed);
     }
 
+    /**
+     * @return a human-readable explanation of why the most recent message was
+     *         rejected, or null if it was valid.
+     */
     public String getLastError() {
         return lastError;
     }
