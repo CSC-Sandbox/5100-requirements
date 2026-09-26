@@ -7,6 +7,15 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.time.Instant;
 
+/*
+ * This class runs the entire program of storing
+ * the incoming messages. It patiently awaits
+ * to receive the messages to store.
+ *
+ * @author Edgard Aviles
+ * @version September 25, 2026
+ */
+
 public class StoreMessages {
   public static void main(String[] args) {
     Broker broker = new Broker("localhost", 5000);
