@@ -1,3 +1,14 @@
+/**
+ * Displays affective-state messages received from the Broker as a real-time
+ * line chart and a set of current-value cards.
+ *
+ * <p>The application listens for messages in the format:
+ * {@code AFFECT,focus,excitement,engagement,interest,stress}.</p>
+ *
+ * @author Juan Gonzalez
+ * @version September 25, 2026
+ */
+
 package edu.calpoly.provided;
 
 import java.awt.BorderLayout;
