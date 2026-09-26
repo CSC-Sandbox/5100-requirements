@@ -5,12 +5,23 @@ import java.net.*;
 import java.util.Locale;
 
 /**
- * Course-provided gaze simulator used to test DisplayEye.java.
+ * Gaze simulator used to test DisplayEye.java
+ * Based on the provided TestDisplayEye.java
+ *
+ * @author James Yaguma
+ * @version 1.0 (2026-09-25)
  */
 public class TestDisplayEye {
     private static final int PORT = 5000, STEPS_X = 20, ROWS = 6;
     private static final long DELAY_MS = 150;
 
+    /**
+     * Main method
+     * Start sending out messages (either snake or invalid messages)
+     * Should be running before DisplayEye.java is started
+     *
+     * @param args Command line args (unused)
+     */
     public static void main(String[] args) {
         System.out.println("TestDisplayEye running on localhost:" + PORT);
         System.out.println("Run DisplayEye.java and observe the gaze point.");
