@@ -1,0 +1,110 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Provide Data Activity Architecture</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f8fafc;
+    --fg: #172033;
+    --muted: #5b6475;
+    --line: #64748b;
+    --input: #bfdbfe;
+    --process: #c7d2fe;
+    --storage: #99f6e4;
+    --external: #fde68a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --fg: #e5e7eb;
+      --muted: #a3adbd;
+      --line: #94a3b8;
+      --input: #1d4ed8;
+      --process: #4338ca;
+      --storage: #0f766e;
+      --external: #92400e;
+    }
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+  }
+  main { max-width: 1180px; margin: 32px auto; padding: 0 20px; }
+  svg { width: 100%; height: auto; display: block; }
+  .title { font-size: 22px; font-weight: 650; fill: var(--fg); }
+  .label { font-size: 14px; font-weight: 650; fill: var(--fg); }
+  .small { font-size: 12px; fill: var(--muted); }
+  .node { stroke: var(--line); stroke-width: 1.2; rx: 8; }
+  .input { fill: var(--input); }
+  .process { fill: var(--process); }
+  .storage { fill: var(--storage); }
+  .external { fill: var(--external); }
+  .edge { stroke: var(--line); stroke-width: 1.6; fill: none; }
+</style>
+<main>
+  <svg viewBox="0 0 1160 560" role="img"
+       aria-labelledby="diagram-title diagram-description">
+    <title id="diagram-title">Provide Data Activity component diagram</title>
+    <desc id="diagram-description">
+      One provider owns the activity tracker and supplies equivalent snapshots
+      to separate REST and MQTT adapters.
+    </desc>
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4"
+              orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L10,4 L0,8 Z" fill="var(--line)" />
+      </marker>
+    </defs>
+
+    <text x="20" y="34" class="title">Provide Data Activity — condensed provider architecture</text>
+
+    <path class="edge" marker-end="url(#arrow)" d="M210 155 H275" />
+    <path class="edge" marker-end="url(#arrow)" d="M505 155 H570" />
+    <path class="edge" marker-end="url(#arrow)" d="M390 210 V280 H270 V335" />
+    <path class="edge" marker-end="url(#arrow)" d="M390 210 V280 H555 V335" />
+    <path class="edge" marker-end="url(#arrow)" d="M735 390 H790" />
+    <path class="edge" marker-end="url(#arrow)" d="M970 390 H1010" />
+    <path class="edge" marker-end="url(#arrow)" d="M270 445 V495 H1100 V445" />
+
+    <text x="405" y="265" class="small">same shared ActivitySnapshot JSON</text>
+
+    <rect x="20" y="100" width="190" height="110" class="node input" />
+    <text x="115" y="134" text-anchor="middle" class="label">Existing Broker</text>
+    <text x="115" y="163" text-anchor="middle" class="small">localhost:5000</text>
+    <text x="115" y="185" text-anchor="middle" class="small">TYPE,data...</text>
+
+    <rect x="275" y="100" width="230" height="110" class="node process" />
+    <text x="390" y="134" text-anchor="middle" class="label">ProvideDataActivity</text>
+    <text x="390" y="163" text-anchor="middle" class="small">receive and record messages</text>
+    <text x="390" y="185" text-anchor="middle" class="small">create shared snapshots</text>
+
+    <rect x="570" y="100" width="210" height="110" class="node storage" />
+    <text x="675" y="134" text-anchor="middle" class="label">ActivityTracker</text>
+    <text x="675" y="163" text-anchor="middle" class="small">single 60-second calculation</text>
+    <text x="675" y="185" text-anchor="middle" class="small">thread-safe counts</text>
+
+    <rect x="170" y="335" width="200" height="110" class="node process" />
+    <text x="270" y="369" text-anchor="middle" class="label">ActivityRestServer</text>
+    <text x="270" y="398" text-anchor="middle" class="small">GET /activity</text>
+    <text x="270" y="420" text-anchor="middle" class="small">JSON response</text>
+
+    <rect x="555" y="335" width="180" height="110" class="node process" />
+    <text x="645" y="369" text-anchor="middle" class="label">ActivityMqttProvider</text>
+    <text x="645" y="398" text-anchor="middle" class="small">QoS 1 · retained</text>
+    <text x="645" y="420" text-anchor="middle" class="small">publish every second</text>
+
+    <rect x="790" y="335" width="180" height="110" class="node external" />
+    <text x="880" y="369" text-anchor="middle" class="label">HiveMQ Broker</text>
+    <text x="880" y="398" text-anchor="middle" class="small">csc5100/activity/</text>
+    <text x="880" y="420" text-anchor="middle" class="small">dylan/state</text>
+
+    <rect x="1010" y="335" width="140" height="110" class="node external" />
+    <text x="1080" y="369" text-anchor="middle" class="label">Paired Consumer</text>
+    <text x="1080" y="398" text-anchor="middle" class="small">REST client</text>
+    <text x="1080" y="420" text-anchor="middle" class="small">MQTT subscriber</text>
+  </svg>
+</main>

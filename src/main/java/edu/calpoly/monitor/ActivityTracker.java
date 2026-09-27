@@ -19,6 +19,7 @@ import java.util.function.LongSupplier;
 public final class ActivityTracker {
     public static final Duration DEFAULT_WINDOW = Duration.ofSeconds(60);
 
+    private final Duration window;
     private final long windowNanos;
     private final LongSupplier timeSource;
     private final EnumMap<DataSource, ArrayDeque<Long>> messageTimes = new EnumMap<>(DataSource.class);
@@ -47,6 +48,7 @@ public final class ActivityTracker {
             throw new IllegalArgumentException("window must be positive");
         }
 
+        this.window = window;
         this.windowNanos = window.toNanos();
         for (DataSource source : DataSource.values()) {
             messageTimes.put(source, new ArrayDeque<>());
@@ -78,6 +80,15 @@ public final class ActivityTracker {
             counts.put(source, messageTimes.get(source).size());
         }
         return Collections.unmodifiableMap(counts);
+    }
+
+    /**
+     * Returns the moving time window used by this tracker.
+     *
+     * @return duration for which recorded messages remain active
+     */
+    public Duration window() {
+        return window;
     }
 
     private void pruneExpired(long now) {
