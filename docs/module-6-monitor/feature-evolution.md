@@ -77,8 +77,7 @@ responsibilities:
 to use `ActivityTracker` directly. REST and MQTT share the provider's tracker;
 neither adapter contains a second activity calculation.
 
-See [activity-provider-uml.html](activity-provider-uml.html) for the updated
-architecture diagram.
+See [uml.png](uml.png) for the updated UML class diagram.
 
 ## Configuration
 

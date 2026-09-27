@@ -73,4 +73,4 @@ then obtain equivalent snapshots from that provider.
 
 The shared communication contract, configuration, and run instructions are in
 [feature-evolution.md](feature-evolution.md). The updated component diagram is
-in [activity-provider-uml.html](activity-provider-uml.html).
+in [uml.png](uml.png).
