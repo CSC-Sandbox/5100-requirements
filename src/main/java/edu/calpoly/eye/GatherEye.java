@@ -11,6 +11,7 @@ import edu.calpoly.provided.Broker;
 public class GatherEye {
     public static void main(String[] args) {
         Broker broker = new Broker("localhost", 5000);
+        GazeService gazeService = new GazeService();
         JFrame frame = new JFrame("Gather Eye");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
@@ -25,6 +26,8 @@ public class GatherEye {
                 int y = e.getY();
                 double normalizedX = (double) x / screen.getWidth();
                 double normalizedY = (double) y / screen.getHeight();
+                GazePoint gazePoint = new GazePoint(normalizedX, normalizedY);
+                gazeService.setGazePoint(gazePoint);
                 String message = "GAZE," + normalizedX + "," + normalizedY;
                 broker.send(message);
                 gazeLabel.setText("Gaze X: " + normalizedX + ", Gaze Y: " + normalizedY);
