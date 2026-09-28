@@ -5,35 +5,39 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
-// Literally just a class to hold an (x,y) coordinate
+/**
+ * GazePoint class to store an (x,y) coordinate as a single object
+ *
+ * @author James Yaguma
+ * @version 1.0 (2026-09-25)
+ */
 public class GazePoint {
 
     public double x;
     public double y;
     public static final ObjectMapper mapper = new ObjectMapper();
 
-    /**
-     * Default constructor
-     * (x,y) set to (0,0) by default
-     */
-    GazePoint() {
-        x = 0.0;
-        y = 0.0;
-    }
-
-    // Constructor with predefined (x,y)
     GazePoint(double x, double y) {
         this.x = x;
         this.y = y;
     }
 
-    // Copy constructor
+    /**
+     * Copy constructor for GazePoint
+     *
+     * @param gazePoint The GazePoint to copy
+     */
     GazePoint(GazePoint gazePoint) {
         x = gazePoint.x;
         y = gazePoint.y;
     }
 
-    // Set both simultaneously
+    /**
+     * Setter for both x and y simultaneously
+     *
+     * @param x New x value
+     * @param y New y value
+     */
     public void setXY(double x, double y) {
         this.x = x;
         this.y = y;
