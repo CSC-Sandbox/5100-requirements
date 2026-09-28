@@ -1,5 +1,19 @@
 ## Design
 
+### RobotServer.java
+
+- Starts the robot server with a GUI, BlackBoard, MQTT adapter, and REST adapter. Rest endpoints are `PUT /robot/1` and `GET /robot/1`. This server provides Robot information on GET requests and visualizes all information from PUTs and pusblishers.
+
+### RobotRESTAdapter.java
+
+- Defines REST interactions with `RobotServer.java` specifically through stored callback functions.
+- Endpoints
+    - `PUT http://localhost:5001/robot/1` recieves a json body of `{"jointAngles":[j1,j2,j3,j4,j5,j6],"position":[x,y,z]}` and updates the `RobotBlackBoard` within the `RobotServer`.
+
+### RobotMQTTAdapter.java
+
+- Not yet Fully Implemented.
+
 ### RobotGUI.java
 
 - Manages a robot GUI at a high level and is what would primarily be interacted with. Decides when to update the displays and decides what to display. Manages the composition of the `RobotDisplayPanel` and `RobotDataPanel`
