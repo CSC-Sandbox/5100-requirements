@@ -6,21 +6,42 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+/**
+ * REST client for gaze data
+ * Gaze data is expected to be a JSON object representing a GazePoint
+ *
+ * @author James Yaguma
+ * @version 1.0 (2026-09-28)
+ */
 public class GazeRESTClient {
     private final String URL;
 
     private final HttpClient client = HttpClient.newHttpClient();
 
-    // Default Constructor (default to localhost)
+    /**
+     * Default constructor
+     * Use localhost:8080 by default
+     */
     GazeRESTClient() {
         this("https://localhost:8080/gaze");
     }
 
-    // If there's a URL to listen on, use it instead
+    /**
+     * Constructor with URL specified
+     * This needs the full path (not just host and port)
+     *
+     * @param URL The url to connect to for http requests
+     */
     GazeRESTClient(String URL) {
         this.URL = URL;
     }
 
+    /**
+     * Attempt to GET the current GazePoint
+     * Throws IOException if the request fails
+     *
+     * @return The GazePoint that was received from the REST interface
+     */
     public GazePoint getGaze() throws IOException, InterruptedException {
         HttpRequest req = HttpRequest.newBuilder(URI.create(URL)).GET().build();
         HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());

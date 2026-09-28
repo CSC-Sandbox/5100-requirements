@@ -12,7 +12,10 @@ public class GazePoint {
     public double y;
     public static final ObjectMapper mapper = new ObjectMapper();
 
-    // Default Constructor (0,0)
+    /**
+     * Default constructor
+     * (x,y) set to (0,0) by default
+     */
     GazePoint() {
         x = 0.0;
         y = 0.0;

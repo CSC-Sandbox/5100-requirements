@@ -3,6 +3,13 @@ package edu.calpoly.eye;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 
+/**
+ * MQTT Consumer for gaze data
+ * Gaze data is expected to be a JSON object representing a GazePoint
+ *
+ * @author James Yaguma
+ * @version 1.0 (2026-09-28)
+ */
 public class GazeMQTTConsumer {
     /**
      * Start the consumer with the hivemq broker as default
