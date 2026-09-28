@@ -6,7 +6,11 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -22,6 +26,7 @@ public final class ProvideDataActivity {
     private static final int INPUT_PORT = 5000;
     private static final int REST_PORT = 8080;
     private static final long RETRY_DELAY_MILLIS = 1_000;
+    private static final long SIMULATED_MESSAGE_INTERVAL_MILLIS = 500;
 
     private final ActivityTracker tracker;
     private final Clock clock;
@@ -138,12 +143,40 @@ public final class ProvideDataActivity {
     }
 
     /**
+     * @return the executor driving the simulation, for later shutdown
+     */
+    private ScheduledExecutorService startSimulatedInput() {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "activity-input-simulator");
+            thread.setDaemon(true);
+            return thread;
+        });
+
+        Random random = new Random();
+        String[] sampleMessages = {
+                "ROBOT,0.42,-0.18,0.75,0.10,-0.32,0.57,0.25,0.10,0.42",
+                "GAZE,0.35,0.72",
+                "AFFECT,0.72,0.41,0.65,0.58,0.33",
+                "LIDAR,1.25,-0.40,2.10"
+        };
+
+        executor.scheduleAtFixedRate(
+                () -> recordMessage(sampleMessages[random.nextInt(sampleMessages.length)]),
+                0,
+                SIMULATED_MESSAGE_INTERVAL_MILLIS,
+                TimeUnit.MILLISECONDS);
+        return executor;
+    }
+
+    /**
      * Runs the data-activity provider until the process is stopped.
      *
      * @param args command-line arguments; currently unused
      * @throws Exception when an outward interface cannot start
      */
     public static void main(String[] args) throws Exception {
+        boolean useRealBroker = "broker".equalsIgnoreCase(
+                System.getProperty("activity.input", "simulate"));
         String inputHost = System.getProperty("activity.input.host", INPUT_HOST);
         int inputPort = Integer.getInteger("activity.input.port", INPUT_PORT);
         int restPort = Integer.getInteger("activity.rest.port", REST_PORT);
@@ -170,16 +203,28 @@ public final class ProvideDataActivity {
             restServer.close();
             throw exception;
         }
-        provider.startReceiver(
-                new Broker(inputHost, inputPort),
-                System.out::println);
+
+        ScheduledExecutorService simulator = null;
+        if (useRealBroker) {
+            provider.startReceiver(
+                    new Broker(inputHost, inputPort),
+                    System.out::println);
+            System.out.println("Input: course broker at " + inputHost + ":" + inputPort);
+        } else {
+            simulator = provider.startSimulatedInput();
+            System.out.println("Input: simulated locally (no external broker required)");
+        }
 
         System.out.println("REST provider: http://localhost:"
                 + restServer.getPort() + ActivityRestServer.PATH);
         System.out.println("MQTT provider: " + mqttBroker + " topic " + mqttTopic);
 
+        ScheduledExecutorService finalSimulator = simulator;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             provider.stopReceiver();
+            if (finalSimulator != null) {
+                finalSimulator.shutdownNow();
+            }
             restServer.close();
             mqttProvider.close();
         }, "activity-provider-shutdown"));
