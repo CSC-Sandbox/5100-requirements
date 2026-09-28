@@ -1,7 +1,5 @@
 package edu.calpoly.monitor;
 
-import edu.calpoly.provided.Broker;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -22,25 +20,29 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
 
-// Displays recent message activity from the broker
+/**
+ * Displays recent message activity obtained from the paired activity
+ *
+ * @author Aiden Rodriguez
+ * @version September 27, 2026
+ */
 public final class DisplayDataActivity extends JPanel {
     private static final long serialVersionUID = 1L;
-    private static final String BROKER_HOST = "localhost";
-    private static final int BROKER_PORT = 5000;
     private static final int REFRESH_INTERVAL_MILLIS = 250;
-    private static final long RETRY_DELAY_MILLIS = 1_000;
     private static final Color BACKGROUND = new Color(245, 247, 250);
     private static final Color BAR_COLOR = new Color(52, 120, 246);
+    private static final String DEFAULT_REST_BASE_URI = "http://localhost:8080";
 
-    private final ActivityTracker tracker;
+    private final ActivitySnapshotSource activitySource;
     private final EnumMap<DataSource, JLabel> countLabels = new EnumMap<>(DataSource.class);
-    private final EnumMap<DataSource, JProgressBar> activityBars =
-            new EnumMap<>(DataSource.class);
-    private final JLabel connectionStatus = new JLabel("Starting data receiver...");
+    private final EnumMap<DataSource, JProgressBar> activityBars = new EnumMap<>(DataSource.class);
+    private final JLabel connectionStatus = new JLabel("Starting activity consumer...");
+    private final JLabel subtitle = new JLabel("Messages received in the last 60 seconds");
 
-    private DisplayDataActivity(ActivityTracker tracker) {
-        this.tracker = tracker;
+    private DisplayDataActivity(ActivitySnapshotSource activitySource) {
+        this.activitySource = activitySource;
         setLayout(new BorderLayout(0, 22));
         setBackground(BACKGROUND);
         setBorder(BorderFactory.createEmptyBorder(26, 34, 22, 34));
@@ -49,10 +51,10 @@ public final class DisplayDataActivity extends JPanel {
         add(createActivityGrid(), BorderLayout.CENTER);
 
         connectionStatus.setForeground(new Color(88, 96, 105));
-        connectionStatus.getAccessibleContext().setAccessibleName("Broker connection status");
+        connectionStatus.getAccessibleContext().setAccessibleName("Activity source connection status");
         add(connectionStatus, BorderLayout.SOUTH);
 
-        Timer refreshTimer = new Timer(REFRESH_INTERVAL_MILLIS, event -> refreshCounts());
+        Timer refreshTimer = new Timer(REFRESH_INTERVAL_MILLIS, event -> refreshDisplay());
         refreshTimer.setInitialDelay(0);
         refreshTimer.start();
     }
@@ -62,7 +64,8 @@ public final class DisplayDataActivity extends JPanel {
     }
 
     private static void createAndShowApplication() {
-        DisplayDataActivity application = new DisplayDataActivity(new ActivityTracker());
+        ActivitySnapshotSource activitySource = createConfiguredSource();
+        DisplayDataActivity application = new DisplayDataActivity(activitySource);
 
         JFrame frame = new JFrame("Recent Data Activity");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -73,7 +76,29 @@ public final class DisplayDataActivity extends JPanel {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        application.startReceiver();
+        activitySource.start();
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(activitySource::close, "activity-source-shutdown"));
+    }
+
+    /**
+     * Chooses which outward interface to consume. REST is the default,
+     * matching the architecture note that REST is the preferred interface;
+     * passing {@code -Dactivity.source=mqtt} switches to the experimental
+     * MQTT path without any code change, so both can be demonstrated from
+     * the same GUI.
+     *
+     * @return the configured, not-yet-started activity source
+     */
+    private static ActivitySnapshotSource createConfiguredSource() {
+        String sourceType = System.getProperty("activity.source", "rest");
+        if ("mqtt".equalsIgnoreCase(sourceType)) {
+            String broker = System.getProperty("activity.mqtt.broker", ActivityMqttConsumer.DEFAULT_BROKER);
+            String topic = System.getProperty("activity.mqtt.topic", ActivityMqttConsumer.DEFAULT_TOPIC);
+            return new ActivityMqttConsumer(broker, topic);
+        }
+        String baseUri = System.getProperty("activity.rest.baseUri", DEFAULT_REST_BASE_URI);
+        return new ActivityRestClient(baseUri);
     }
 
     private JPanel createHeading() {
@@ -85,7 +110,6 @@ public final class DisplayDataActivity extends JPanel {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 26f));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel subtitle = new JLabel("Messages received in the last 60 seconds");
         subtitle.setForeground(new Color(88, 96, 105));
         subtitle.setFont(subtitle.getFont().deriveFont(14f));
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -142,8 +166,23 @@ public final class DisplayDataActivity extends JPanel {
         return grid;
     }
 
-    private void refreshCounts() {
-        Map<DataSource, Integer> counts = tracker.snapshot();
+    /**
+     * Runs on the Swing event thread every {@link #REFRESH_INTERVAL_MILLIS}.
+     * Reads whatever the source last obtained; it does not itself perform
+     * any network I/O, so it never blocks the UI.
+     */
+    private void refreshDisplay() {
+        connectionStatus.setText(activitySource.status());
+
+        Optional<ActivitySnapshot> snapshotOpt = activitySource.latestSnapshot();
+        if (snapshotOpt.isEmpty()) {
+            return; // Keep the initial "0 messages" display until data arrives.
+        }
+
+        ActivitySnapshot snapshot = snapshotOpt.get();
+        subtitle.setText("Messages received in the last " + snapshot.windowSeconds() + " seconds");
+
+        Map<DataSource, Integer> counts = snapshot.counts();
         int maximum = Math.max(1, counts.values().stream().mapToInt(Integer::intValue).max().orElse(1));
 
         for (DataSource source : DataSource.values()) {
@@ -152,50 +191,6 @@ public final class DisplayDataActivity extends JPanel {
             JProgressBar activityBar = activityBars.get(source);
             activityBar.setMaximum(maximum);
             activityBar.setValue(count);
-        }
-    }
-
-    private void startReceiver() {
-        Thread receiverThread = new Thread(
-                () -> receiveMessages(new Broker(BROKER_HOST, BROKER_PORT)),
-                "broker-message-receiver");
-        receiverThread.setDaemon(true);
-        receiverThread.start();
-    }
-
-    private void receiveMessages(Broker broker) {
-        boolean connected = false;
-        setConnectionStatus("Connecting to localhost:5000...");
-
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
-                String message = broker.receive();
-                if (!connected) {
-                    setConnectionStatus("Receiving data from localhost:5000");
-                    connected = true;
-                }
-                DataSource.fromMessage(message).ifPresent(tracker::record);
-            } catch (IllegalStateException exception) {
-                connected = false;
-                setConnectionStatus("Waiting for the data broker on localhost:5000...");
-                if (!pauseBeforeRetry()) {
-                    return;
-                }
-            }
-        }
-    }
-
-    private void setConnectionStatus(String status) {
-        SwingUtilities.invokeLater(() -> connectionStatus.setText(status));
-    }
-
-    private static boolean pauseBeforeRetry() {
-        try {
-            Thread.sleep(RETRY_DELAY_MILLIS);
-            return true;
-        } catch (InterruptedException exception) {
-            Thread.currentThread().interrupt();
-            return false;
         }
     }
 }
