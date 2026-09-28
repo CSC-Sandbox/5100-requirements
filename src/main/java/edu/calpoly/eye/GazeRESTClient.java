@@ -51,4 +51,14 @@ public class GazeRESTClient {
         }
         return GazePoint.fromJSON(res.body());
     }
+
+    // Main method for testing purposes
+    public static void main(String[] args) {
+        GazeRESTClient client = new GazeRESTClient();
+        try {
+            client.getGaze();
+        } catch (Exception e) {
+            System.out.println("GetGaze got error: " + e.getMessage());
+        }
+    }
 }
