@@ -143,7 +143,6 @@ public final class ProvideDataActivity {
     }
 
     /**
-     * Feeds synthetic, well-formed messages into provider
      * @return the executor driving the simulation, for later shutdown
      */
     private ScheduledExecutorService startSimulatedInput() {

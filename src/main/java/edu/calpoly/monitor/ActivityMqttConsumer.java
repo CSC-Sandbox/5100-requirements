@@ -1,9 +1,7 @@
 package edu.calpoly.monitor;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -11,16 +9,13 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Obtains current data-activity information by subscribing to the paired
- * provider's MQTT activity topic. The provider publishes retained messages,
- * so a snapshot is normally available immediately after subscribing rather
- * than only after the next scheduled publish.
- *
- *
+ * provider's MQTT activity topic.
  * @author Aiden Rodriguez
  * @version September 27, 2026
  */
@@ -72,6 +67,7 @@ public final class ActivityMqttConsumer implements ActivitySnapshotSource {
 
                 @Override
                 public void deliveryComplete(IMqttDeliveryToken token) {
+                    // Not used; this client only subscribes, it never publishes.
                 }
             });
 
@@ -118,9 +114,6 @@ public final class ActivityMqttConsumer implements ActivitySnapshotSource {
         return value;
     }
 
-    /**
-     * Unsubscribes and disconnects from the broker.
-     */
     @Override
     public synchronized void close() {
         if (client != null) {

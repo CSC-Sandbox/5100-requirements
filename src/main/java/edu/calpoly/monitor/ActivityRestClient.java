@@ -1,5 +1,8 @@
 package edu.calpoly.monitor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -13,15 +16,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Obtains current data-activity information by periodically polling the
- * paired provider's {@code GET /activity} REST endpoint. Because REST is
- * pull-based, this class owns the poll schedule itself rather than expecting
- * the caller to drive each request.
- *
+ * paired provider's /activity REST endpoint.
  * @author Aiden Rodriguez
  * @version September 27, 2026
  */
@@ -65,9 +62,6 @@ public final class ActivityRestClient implements ActivitySnapshotSource {
         }
     }
 
-    /**
-     * Starts polling {@code GET /activity} on the configured interval.
-     */
     @Override
     public synchronized void start() {
         if (pollExecutor != null) {
