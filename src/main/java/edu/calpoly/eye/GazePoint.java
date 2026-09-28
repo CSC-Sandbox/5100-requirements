@@ -43,20 +43,38 @@ public class GazePoint {
         this.y = y;
     }
 
-    // New GazePoint from JSON
+    /**
+     * Create a new GazePoint from JSON byte array
+     * Also performs a data validity check
+     *
+     * @param jsonBytes A JSON representation of GazePoint as a byte array
+     * @return A new GazePoint from the inputted JSON
+     * @throws IOException Thrown if unable to read byte array as JSON
+     */
     public static GazePoint fromJSON (byte[] jsonBytes) throws IOException {
         GazePoint ret = mapper.readValue(jsonBytes, GazePoint.class);
         ret.validCheck();
         return ret;
     }
 
+    /**
+     * String version of fromJSON
+     *
+     * @param jsonString A JSON representation of GazePoint as a string
+     * @return A new GazePoint from the inputted JSON
+     * @throws IOException Thrown if unable to read string as JSON
+     * @see #fromJSON(byte[])
+     */
     public static GazePoint fromJSON (String jsonString) throws IOException {
         GazePoint ret = mapper.readValue(jsonString, GazePoint.class);
         ret.validCheck();
         return ret;
     }
 
-    // Throw exception if x or y not within valid range
+    /**
+     * Perform a validity check on itself
+     * Throws an IllegalArgumentException if a value is out of range
+     */
     private void validCheck() {
         if (x < 0 || x > 1) {
             throw new IllegalArgumentException("GazePoint x out of range: " + x + " is not within range of 0.0 and 1.0");
