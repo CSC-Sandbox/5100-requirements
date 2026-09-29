@@ -3,12 +3,28 @@ package edu.calpoly.analysis;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Analyzes an ordered sequence of coordinates to determine whether
+ * the points form a complete circle.
+ *
+ * @author Jess A
+ * @version September 25, 2026
+ */
+
 public final class CircleAnalyzer {
     private static final int MIN_POINTS = 8;
-    private static final double MAX_ERROR = 0.05;
+    private static final double MAX_NORMALIZED_RADIAL_ERROR = 0.05;
 
     private ShapeClassification lastResult;
 
+
+    /**
+     * Classifies an ordered sequence of coordinates.
+     *
+     * @param points coordinates describing the shape boundary
+     * @return the resulting shape classification
+     * 
+     */
     public ShapeClassification analyze(List<Coordinate> points) {
         if (!isValid(points)) {
             lastResult = ShapeClassification.INSUFFICIENT_DATA;
@@ -16,7 +32,7 @@ public final class CircleAnalyzer {
         }
 
         Circle circle = estimateCircle(points);
-        boolean round = radialError(points, circle) <= MAX_ERROR;
+        boolean round = radialError(points, circle) <= MAX_NORMALIZED_RADIAL_ERROR;
         boolean complete = isComplete(points, circle);
 
         lastResult = round && complete
@@ -25,6 +41,12 @@ public final class CircleAnalyzer {
         return lastResult;
     }
 
+
+    /**
+     * Returns the result of the most recent analysis.
+     *
+     * @return the previous result, or an empty optional (if none exists)
+     */
     public Optional<ShapeClassification> getLastResult() {
         return Optional.ofNullable(lastResult);
     }
@@ -38,6 +60,7 @@ public final class CircleAnalyzer {
         if (!isFinite(first)) {
             return false;
         }
+
 
         boolean hasDifferentPoint = false;
         for (Coordinate point : points) {
