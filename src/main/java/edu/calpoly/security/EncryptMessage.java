@@ -29,7 +29,7 @@ public final class EncryptMessage {
     }
 
     /**
-     * Message decryption implementation for CSC 5100
+     * Message encryption implementation for CSC 5100
      * Utility method to encrypt a message in the form of a string.
      *
      * @author Howard Jiang (hwrd22)
