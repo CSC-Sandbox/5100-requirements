@@ -23,7 +23,15 @@ import java.awt.Insets;
 import java.util.EnumMap;
 import java.util.Map;
 
-// Displays recent message activity from the broker
+/**
+ * Provides the Swing user interface for monitoring recent broker message
+ * activity. The panel receives messages in the background and presents rolling
+ * counts for each supported data source without blocking the event-dispatch
+ * thread.
+ *
+ * @author Dylan Gururajan
+ * @version September 25, 2026
+ */
 public final class DisplayDataActivity extends JPanel {
     private static final long serialVersionUID = 1L;
     private static final String BROKER_HOST = "localhost";
@@ -35,8 +43,10 @@ public final class DisplayDataActivity extends JPanel {
 
     private final ActivityTracker tracker;
     private final EnumMap<DataSource, JLabel> countLabels = new EnumMap<>(DataSource.class);
+
     private final EnumMap<DataSource, JProgressBar> activityBars =
             new EnumMap<>(DataSource.class);
+
     private final JLabel connectionStatus = new JLabel("Starting data receiver...");
 
     private DisplayDataActivity(ActivityTracker tracker) {
@@ -57,6 +67,12 @@ public final class DisplayDataActivity extends JPanel {
         refreshTimer.start();
     }
 
+    /**
+     * Launches the recent-data activity monitor on the Swing event-dispatch
+     * thread.
+     *
+     * @param args command-line arguments; currently unused
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(DisplayDataActivity::createAndShowApplication);
     }
