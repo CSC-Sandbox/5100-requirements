@@ -17,6 +17,21 @@ public class GazePoint {
     public double y;
     public static final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Default constructor
+     * (x,y) set to (0,0) by default
+     */
+    GazePoint() {
+        x = 0.0;
+        y = 0.0;
+    }
+
+    /**
+     * Constructor allowing preset (x,y) values
+     *
+     * @param x the x value to store
+     * @param y the y value to store
+     */
     GazePoint(double x, double y) {
         this.x = x;
         this.y = y;
