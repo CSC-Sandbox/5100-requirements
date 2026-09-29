@@ -11,8 +11,8 @@ import javax.swing.JFrame;
  * @version 1.0.1 (9/26/2026)
  */
 public class RobotServer {
-    private static final String MQTT_HOST = "localhost";
-    private static final int MQTT_PORT = 5000;
+    private static final String MQTT_HOST = "broker.hivemq.com";
+    private static final int MQTT_PORT = 1883;
 
     private static final int REST_PORT = 5001;
     private static final int ROBOT_ID = 1;
