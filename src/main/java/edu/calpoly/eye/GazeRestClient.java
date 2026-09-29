@@ -23,7 +23,7 @@ public class GazeRestClient {
      * Use localhost:8080 by default
      */
     GazeRestClient() {
-        this("https://localhost:8080/gaze");
+        this("http://localhost:8080/gaze");
     }
 
     /**
@@ -56,7 +56,8 @@ public class GazeRestClient {
     public static void main(String[] args) {
         GazeRestClient client = new GazeRestClient();
         try {
-            client.getGaze();
+            GazePoint gp = client.getGaze();
+            System.out.println("New GazePoint received: (" + gp.x + ", " + gp.y + ")");
         } catch (Exception e) {
             System.out.println("GetGaze got error: " + e.getMessage());
         }
