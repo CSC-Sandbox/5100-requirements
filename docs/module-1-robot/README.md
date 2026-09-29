@@ -9,10 +9,19 @@
 - Defines REST interactions with `RobotServer.java` specifically through stored callback functions.
 - Endpoints
     - `PUT http://localhost:5001/robot/1` recieves a json body of `{"jointAngles":[j1,j2,j3,j4,j5,j6],"position":[x,y,z]}` and updates the `RobotBlackBoard` within the `RobotServer`.
+    - `GET http://localhost:5001/robot/1` returns the latest robot data as JSON, or `404` when no data exists.
 
 ### RobotMQTTAdapter.java
 
-- Not yet Fully Implemented.
+- Subscribes to MQTT topic `robot/1` using Paho.
+- Valid JSON robot data is posted to `RobotBlackBoard`.
+- Invalid messages are reported and ignored.
+
+### RobotRESTClient.java
+
+- Requests robot data from `GET /robot/1`.
+- Converts JSON responses into `RobotMessage` objects and then posts them to `RobotBlackBoard`.
+- Handles HTTP+malformed-data errors w/o crashing.
 
 ### RobotGUI.java
 
@@ -50,5 +59,15 @@
 
 ## Running Tests
 
-1. Start `TestDisplayRobot.java`.
-2. Start `DisplayRobot.java`.
+1. Run `mvn clean test`.
+2. Run `TestRobotRESTClient` to test REST consumption.
+3. Start `RobotServer`, then run `TestRobotRESTAdapter` to test REST endpoints.
+4. Start `RobotServer`, then run `TestRobotMQTTAdapter` to test MQTT consumption.
+
+## Communication Contract
+
+Below is the following of what we established:
+- REST endpoint: `GET /robot/1`
+- MQTT topic: `robot/1`
+- Both interfaces use the same JSON `RobotMessage` format.
+- Note that these team-agreed paths differ from the original backlog contract.
