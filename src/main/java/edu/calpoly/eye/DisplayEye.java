@@ -8,7 +8,7 @@ import javax.swing.*;
  * Also initializes the GUI frame
  *
  * @author James Yaguma
- * @version 1.0 (2026-09-25)
+ * @version 1.1 (2026-09-29)
  */
 public class DisplayEye {
     private final int width = 800;
@@ -44,7 +44,11 @@ public class DisplayEye {
         displayEye.gui.addToFrame(frame);
         frame.setVisible(true);
 
+        // Add update callback to the GazeBlackboard
+        GazeBlackboard blackboard = GazeBlackboard.getInstance();
+        blackboard.addCallback(displayEye.gui::update);
+
         // Start receiving messages
-        displayEye.broker.loopForever(displayEye.gui::update);
+        displayEye.broker.loopForever(blackboard);
     }
 }

@@ -9,7 +9,7 @@ import java.io.IOException;
  * GazePoint class to store an (x,y) coordinate as a single object
  *
  * @author James Yaguma
- * @version 1.0 (2026-09-25)
+ * @version 1.1 (2026-09-28)
  */
 public class GazePoint {
 
