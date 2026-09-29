@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 /**
  * Subscribes to robot data through MQTT and updates the shared blackboard.
@@ -46,7 +47,8 @@ public class RobotMQTTAdapter extends Thread {
         try {
             client = new MqttClient(
                     brokerURI,
-                    MqttClient.generateClientId());
+                    MqttClient.generateClientId(),
+                    new MemoryPersistence());
 
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);

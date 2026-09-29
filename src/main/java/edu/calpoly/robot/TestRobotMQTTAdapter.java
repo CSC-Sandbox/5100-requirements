@@ -2,9 +2,12 @@ package edu.calpoly.robot;
 
 import java.nio.charset.StandardCharsets;
 
+
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 /**
  * Publishes sample JSON robot data to test RobotMQTTAdapter.
@@ -33,7 +36,8 @@ public class TestRobotMQTTAdapter {
     public static void main(String[] args) throws Exception {
         MqttClient client = new MqttClient(
                 BROKER,
-                MqttClient.generateClientId());
+                MqttClient.generateClientId(),
+                new MemoryPersistence());
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
