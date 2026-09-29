@@ -5,26 +5,49 @@ import java.util.regex.*;
 
 import edu.calpoly.provided.Broker;
 
+/**
+ * The broker class for receiving and validating GAZE messages
+ * Utilizes Broker.java which was provided to send/receive messages over TCP sockets
+ *
+ * @author James Yaguma
+ * @version 1.0 (2026-09-25)
+ */
 public class GazeBroker {
 
     private boolean debug; // Debug flag for logging
     private final Broker broker;
     private final GazePoint gazePoint;
 
-    // Debug flag is false by default and optional
+    /**
+     * GazeBroker constructor (with debugging false by default)
+     *
+     * @param host IP address of the host
+     * @param port port to use
+     */
     GazeBroker(String host, int port) {
         broker = new Broker(host, port);
         debug = false;
         gazePoint = new GazePoint(0, 0);
     }
 
+    /**
+     * GazeBroker constructor with explicit debug flag
+     *
+     * @param host IP address of the host
+     * @param port port to use
+     * @param debug debug flag
+     */
     GazeBroker(String host, int port, boolean debug) {
         this(host, port);
         this.debug = debug;
     }
 
-    // Starts the loop to receive messages
-    // Halts the current thread, so preferably multithread this
+    /**
+     * Starts the loop to constantly receive messages
+     * Blocks the current thread, so multi-threading is recommended
+     *
+     * @param onMessage Method to call upon receiving a valid GAZE message
+     */
     public void loopForever(Consumer<GazePoint> onMessage) {
         Pattern msgPattern = Pattern.compile("\\AGAZE,(-?\\d+(?:\\.\\d+)?),(-?\\d+(?:\\.\\d+)?)\\Z");
         try {
