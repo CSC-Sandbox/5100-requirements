@@ -1,39 +1,80 @@
 # CSC 5100 — Software Engineering
 
-This package contains the course-provided infrastructure and test programs for the CSC 5100 programming work.
+This repository contains the shared software project for CSC 5100, including course-provided infrastructure, student implementations, data, tests, and design documentation.
 
-The Product Backlog and the authoritative User Stories and Acceptance Criteria are maintained in the CSC 5100 GitHub requirements repository. Each assigned Feature contains the specific programming, testing, and documentation requirements for that work.
+The Product Backlog, User Stories, Acceptance Criteria, and development work are maintained through GitHub Issues and the CSC 5100 GitHub Project.
 
 ## Repository Structure
 
+The Java project follows the standard Maven directory structure.
+
 ```text
-CSC5100-starter-files/
+5100-requirements/
 ├── README.md
 ├── ASSIGNMENTS.md
 ├── pom.xml
-├── docs/
 ├── data/
-│   ├── store-input.txt
-│   ├── messages.csv
-│   └── empty-messages.csv
-└── src/main/java/edu/calpoly/provided/
-    ├── Broker.java
-    ├── Encryption.java
-    ├── TestGatherRobot.java
-    ├── TestDisplayRobot.java
-    ├── TestGatherEye.java
-    ├── TestDisplayEye.java
-    ├── TestDisplayAffect.java
-    ├── TestDisplayLidar.java
-    ├── TestEncryption.java
-    ├── TestEnterMessage.java
-    ├── TestDisplayMessages.java
-    ├── TestMonitorData.java
-    ├── TestStoreMessages.java
-    └── TestRetrieveMessages.java
+├── docs/
+└── src/
+    └── main/
+        └── java/
+            └── edu/
+                └── calpoly/
+                    ├── analysis/
+                    ├── eye/
+                    ├── message/
+                    ├── monitor/
+                    ├── provided/
+                    ├── robot/
+                    ├── security/
+                    └── storage/
 ```
 
-The package `edu.calpoly.provided` contains infrastructure supplied by the instructor. Students should use these classes but should not modify them unless specifically instructed.
+Student implementations are organized into packages according to their responsibility.
+
+The package:
+
+```text
+edu.calpoly.provided
+```
+
+contains infrastructure and test programs supplied by the instructor. Students should use these classes but should not modify them unless specifically instructed.
+
+## Maven
+
+This project uses Maven for project structure, dependency management, compilation, testing, and packaging.
+
+The Maven configuration is defined in:
+
+```text
+pom.xml
+```
+
+The project currently uses Java 17.
+
+Compile the project from the repository root with:
+
+```bash
+mvn clean compile
+```
+
+Build the project with:
+
+```bash
+mvn clean package
+```
+
+As automated tests are introduced, they will be placed under the standard Maven test directory:
+
+```text
+src/test/java/
+```
+
+and can be executed with:
+
+```bash
+mvn test
+```
 
 ## Common Data Message Contract
 
@@ -63,14 +104,16 @@ LIDAR,1.25,-0.40,0.15
 
 ## Programming Workflow
 
+Development follows the GitHub workflow practiced during Sprint 1:
+
 ```text
-Assigned Feature
+Assigned User Story
     ↓
-Break Feature into Tasks (sub-issues)
+Break User Story into Tasks (sub-issues)
     ↓
 Create a branch
     ↓
-Design with UML
+Design / Update Documentation
     ↓
 Implement in Java
     ↓
@@ -78,20 +121,20 @@ Test
     ↓
 Open a Pull Request
     ↓
-Instructor review
+Instructor Review
     ↓
 Merge
 ```
 
-Do not commit programming work directly to `main`.
+Students should not commit programming work directly to `main`.
 
-For example, for Feature #9:
+A branch should identify the work being performed. For example:
 
 ```text
 9-gather-robot-state
 ```
 
-A Pull Request should identify the Feature being implemented, for example:
+A Pull Request should identify the corresponding User Story, for example:
 
 ```text
 Implement #9 Gather Robot State
@@ -99,13 +142,13 @@ Implement #9 Gather Robot State
 
 ## Provided Infrastructure
 
-Course-provided classes are located under:
+Course-provided infrastructure is located under:
 
 ```text
 src/main/java/edu/calpoly/provided/
 ```
 
-`Broker` supplies the communication interface used by assignments that exchange data through the course communication service.
+`Broker` supplies the communication interface used by modules that exchange data through the course communication service.
 
 ```java
 import edu.calpoly.provided.Broker;
@@ -113,12 +156,18 @@ import edu.calpoly.provided.Broker;
 Broker broker = new Broker("localhost", 5000);
 ```
 
-`Encryption` provides the encryption/decryption operations used by the security module.
+`Encryption` provides the encryption and decryption operations used by the security module.
 
-## Testing
-
-Provided test programs use the `Test...` naming convention. Your assigned GitHub Feature identifies the relevant test program and expected behavior. In general, start the provided test program first and leave it running, then run your implementation.
+The `Test...` programs in the `provided` package are instructor-provided programs for exercising different parts of the system. These should not be confused with automated unit tests that will later be placed under `src/test/java`.
 
 ## Documentation
 
-Design documentation belongs under `docs/` in the directory specified by the assigned Feature. Do not modify the main README as part of the programming assignment.
+Design and architecture documentation belongs under:
+
+```text
+docs/
+```
+
+Documentation should be associated with the corresponding User Story or module.
+
+Do not modify this main README as part of assigned programming work unless specifically instructed.

@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Scanner;
 
 public class DecryptMessage {
+
     public static void main(String[] args) {
         System.out.println("Type an encrypted message to decrypt it, or type \"/quit\" to quit.");
         String encryptedMessage = "";
