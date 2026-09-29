@@ -17,22 +17,25 @@ public class GazeRestClient {
     private final String URL;
 
     private final HttpClient client = HttpClient.newHttpClient();
+    private final GazeBlackboard blackboard;
 
     /**
      * Default constructor
-     * Use localhost:8080 by default
+     * Use localhost:8080 and GazeBlackboard by default
      */
     GazeRestClient() {
-        this("http://localhost:8080/gaze");
+        this(GazeBlackboard.getInstance() ,"http://localhost:8080/gaze");
     }
 
     /**
-     * Constructor with URL specified
+     * Constructor with blackboard and URL specified
      * This needs the full path (not just host and port)
      *
+     * @param blackboard The blackboard to put new gaze data into
      * @param URL The url to connect to for http requests
      */
-    GazeRestClient(String URL) {
+    GazeRestClient(GazeBlackboard blackboard, String URL) {
+        this.blackboard = blackboard;
         this.URL = URL;
     }
 
@@ -50,6 +53,22 @@ public class GazeRestClient {
             throw new IOException("REST request failed: HTTP " + res.statusCode());
         }
         return GazePoint.fromJSON(res.body());
+    }
+
+    public void loopForever() throws IOException, InterruptedException {
+        loopForever(150);
+    }
+
+    public void loopForever(int ms) throws IOException, InterruptedException{
+        while(!Thread.currentThread().isInterrupted()) {
+            blackboard.updateGazePoint(getGaze());
+            try {
+                Thread.sleep(ms);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
     }
 
     // Main method for testing purposes
