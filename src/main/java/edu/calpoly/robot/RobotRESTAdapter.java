@@ -3,18 +3,20 @@ package edu.calpoly.robot;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-
 /**
  * RobotRESTAdapter is an adapter class for the passed in RobotBlackBoard that
  * updates and retrieves the blackboard data everytime a REST request is given.
  * 
  * @author Paul Motter (PaulMotter)
- * @version 1.0.0 (9/26/2026)
+ * @author Jess A (0x10jalencas)
+ * @version 1.0.1 (9/28/2026)
  */
 public class RobotRESTAdapter extends Thread{
     /* expected JSON format
@@ -27,6 +29,7 @@ public class RobotRESTAdapter extends Thread{
     private HttpServer server;
     private int robotID;
     private Consumer<RobotMessage> onPUT;
+    private Supplier<RobotMessage> onGET;
 
     /**
      * Creates a server that can run on a thread.
@@ -38,6 +41,7 @@ public class RobotRESTAdapter extends Thread{
     public RobotRESTAdapter(int RESTPort, int robotID, RobotBlackBoard rbb) throws IOException{
         this.robotID = robotID;
         this.onPUT = rbb::post;
+        this.onGET = rbb::read;
         // Create JSON parser.
         om = new ObjectMapper();
 
@@ -53,8 +57,7 @@ public class RobotRESTAdapter extends Thread{
             // Match http method.
             switch (method) {
                 case "GET":
-                    // Insert GET method
-                    reply(404, "GET does not exist.".getBytes(), exchange);
+                    robotGET(exchange);
                     break;
                 case "POST":
                     reply(404, "POST does not exist.".getBytes(), exchange);
@@ -70,6 +73,34 @@ public class RobotRESTAdapter extends Thread{
                     break;
             }
         });
+    }
+
+    /**
+     * Returns the latest robot data as JSON.
+     *
+     * @param exchange current HTTP exchange
+     */
+    private void robotGET(HttpExchange exchange) {
+        RobotMessage message = onGET.get();
+
+        if (message == null) {
+            reply(
+                404,
+                "No robot data available.".getBytes(StandardCharsets.UTF_8),
+                exchange);
+            return;
+        }
+
+        try {
+            exchange.getResponseHeaders().set(
+                "Content-Type", "application/json");
+            reply(200, om.writeValueAsBytes(message), exchange);
+        } catch (IOException e) {
+            reply(
+                500,
+                "Unable to serialize robot data.".getBytes(StandardCharsets.UTF_8),
+                exchange);
+        }
     }
 
     /**
