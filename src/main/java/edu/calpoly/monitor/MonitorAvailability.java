@@ -11,9 +11,33 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * Monitors the communication availability of Robot, Gaze, Affect, and LiDAR
+ * data sources.
+ *
+ * <p>The monitor tracks when data was most recently received from each source
+ * and considers a source unavailable when it has not communicated within the
+ * configured timeout period. Communication failures are recorded with the
+ * affected component and the time the failure was detected.</p>
+ *
+ * <p>A Swing interface displays the current availability of all monitored
+ * sources while messages are received through the course-provided
+ * {@link Broker}.</p>
+ *
+ * @author Adrian Valenzuela (adrian0427)
+ * @version September 25, 2026
+ */
 public class MonitorAvailability {
 
     private static final long TIMEOUT_MS = 1000;
+
+    private static final String ROBOT = "ROBOT";
+    private static final String GAZE = "GAZE";
+    private static final String AFFECT = "AFFECT";
+    private static final String LIDAR = "LIDAR";
+
+    private static final List<String> SOURCES =
+            List.of(ROBOT, GAZE, AFFECT, LIDAR);
 
     private final Map<String, Long> lastReceived =
             new ConcurrentHashMap<>();
@@ -29,32 +53,57 @@ public class MonitorAvailability {
     private JLabel affectStatus;
     private JLabel lidarStatus;
 
+    /**
+     * Represents a detected loss of communication from a monitored component.
+     *
+     * @param component the component that stopped communicating
+     * @param timestamp the time at which the communication failure was detected
+     */
     public record CommunicationFailure(
             String component,
             LocalDateTime timestamp) {
     }
 
+    /**
+     * Creates an availability monitor for the supported data sources and
+     * initializes the graphical status display.
+     *
+     * <p>Sources begin as unavailable until their first message is received.</p>
+     */
     public MonitorAvailability() {
-        lastReceived.put("ROBOT", 0L);
-        lastReceived.put("GAZE", 0L);
-        lastReceived.put("AFFECT", 0L);
-        lastReceived.put("LIDAR", 0L);
-
-        previousAvailability.put("ROBOT", false);
-        previousAvailability.put("GAZE", false);
-        previousAvailability.put("AFFECT", false);
-        previousAvailability.put("LIDAR", false);
+        for (String source : SOURCES) {
+            lastReceived.put(source, 0L);
+            previousAvailability.put(source, false);
+        }
 
         createGUI();
         startStatusTimer();
     }
 
+    /**
+     * Records that a message was received from a monitored source.
+     *
+     * <p>The recorded time is used to determine whether the source is still
+     * actively communicating. Unknown source identifiers are ignored.</p>
+     *
+     * @param source the identifier of the source that produced the message
+     */
     public void recordMessage(String source) {
         if (lastReceived.containsKey(source)) {
             lastReceived.put(source, System.currentTimeMillis());
         }
     }
 
+    /**
+     * Determines whether a monitored source has communicated within the
+     * configured timeout period.
+     *
+     * <p>A source that has never sent a message is considered unavailable.</p>
+     *
+     * @param source the identifier of the monitored source
+     * @return {@code true} if the source has communicated within the timeout
+     *         period; {@code false} otherwise
+     */
     public boolean isAvailable(String source) {
         Long lastTime = lastReceived.get(source);
 
@@ -65,6 +114,15 @@ public class MonitorAvailability {
         return System.currentTimeMillis() - lastTime <= TIMEOUT_MS;
     }
 
+    /**
+     * Returns a snapshot of the communication failures detected by the monitor.
+     *
+     * <p>The returned list can be used by other parts of the system to inspect
+     * previously detected outages without modifying the monitor's internal
+     * failure history.</p>
+     *
+     * @return an unmodifiable copy of the recorded communication failures
+     */
     public List<CommunicationFailure> getCommunicationFailures() {
         return List.copyOf(communicationFailures);
     }
@@ -134,10 +192,10 @@ public class MonitorAvailability {
     }
 
     private void updateGUI() {
-        updateStatus("ROBOT", robotStatus);
-        updateStatus("GAZE", gazeStatus);
-        updateStatus("AFFECT", affectStatus);
-        updateStatus("LIDAR", lidarStatus);
+        updateStatus(ROBOT, robotStatus);
+        updateStatus(GAZE, gazeStatus);
+        updateStatus(AFFECT, affectStatus);
+        updateStatus(LIDAR, lidarStatus);
     }
 
     private void updateStatus(
@@ -168,6 +226,16 @@ public class MonitorAvailability {
         timer.start();
     }
 
+    /**
+     * Starts the availability monitor application.
+     *
+     * <p>The Swing interface is created on the event dispatch thread while a
+     * separate receiver thread listens for messages from the provided
+     * {@link Broker}. This allows the interface to continue updating while
+     * message reception blocks waiting for new data.</p>
+     *
+     * @param args command-line arguments; not used by this application
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             MonitorAvailability monitor =

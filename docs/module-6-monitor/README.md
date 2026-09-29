@@ -63,3 +63,14 @@
 8. Verify that only one failure is recorded for the outage.
 9. Verify that the source returns to `AVAILABLE` when messages resume.
 10. Continue running the tester and verify the same behavior for each monitored source.
+
+## Provide Recent Data Activity
+
+The Sprint 2 activity provider extends the original recent-data display without
+replacing its 60-second calculation. `ProvideDataActivity` receives messages
+and owns one `ActivityTracker`; `ActivityRestServer` and `ActivityMqttProvider`
+then obtain equivalent snapshots from that provider.
+
+The shared communication contract, configuration, and run instructions are in
+[feature-evolution.md](feature-evolution.md). The updated component diagram is
+in [uml.png](uml.png).

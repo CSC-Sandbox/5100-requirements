@@ -3,6 +3,12 @@ package edu.calpoly.eye;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Creates the UI components to display info about the current gaze position and connection status
+ *
+ * @author James Yaguma
+ * @version 1.0 (2026-09-25)
+ */
 public class GazeInfo extends JPanel{
 
     public boolean conStatus;
@@ -11,6 +17,9 @@ public class GazeInfo extends JPanel{
     public final JLabel yLabel;
     public final JLabel statusText;
 
+    /**
+     * Constructor which instantiates all the labels and text
+     */
     GazeInfo() {
         super();
 
@@ -124,6 +133,12 @@ public class GazeInfo extends JPanel{
         gbc.gridy++;
     }
 
+    /**
+     * GazePoint setter
+     * Additionally updates the labels and text to the correct gaze position and connection status
+     *
+     * @param gazePoint The new GazePoint value
+     */
     public void setGazePoint(GazePoint gazePoint) {
         this.gazePoint.setXY(gazePoint.x, gazePoint.y);
 

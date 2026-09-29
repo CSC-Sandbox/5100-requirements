@@ -3,10 +3,21 @@ package edu.calpoly.eye;
 import java.awt.*;
 import javax.swing.*;
 
-// The visualization of the current gaze position as a red dot
+/**
+ * Inherits from JPanel
+ * Creates a visualization of the gaze position as a red circle inside a rectangle
+ * Top left corner is (0,0) and bottom right corner is (1,1)
+ * 
+ * @author James Yaguma
+ * @version 1.0 (2026-09-25)
+ */
 public class GazeArea extends JPanel {
     public final GazePoint gazePoint = new GazePoint(0.5, 0.5);
 
+    /**
+     * Constructor for GazeArea
+     * Also initializes the labels
+     */
     GazeArea() {
         super();
 
@@ -59,6 +70,11 @@ public class GazeArea extends JPanel {
         g2.fillOval(panelX - radius, panelY - radius, 2 * radius, 2 * radius);
     }
 
+    /**
+     * GazePoint setter
+     *
+     * @param gazePoint The new GazePoint value
+     */
     public void setGazePoint(GazePoint gazePoint) {
         this.gazePoint.setXY(gazePoint.x, gazePoint.y);
     }

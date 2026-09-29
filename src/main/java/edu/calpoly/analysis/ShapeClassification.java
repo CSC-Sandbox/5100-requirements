@@ -1,6 +1,13 @@
 package edu.calpoly.analysis;
 
-// The three possible results of analyzing a coordinate sequence.
+
+/**
+ * Defines the possible results of analyzing a coordinate sequence.
+ *
+ * @author Jess A
+ * @version September 25, 2026
+ */
+
 public enum ShapeClassification {
     CIRCLE("Circle"),
     NOT_A_CIRCLE("Not a circle"),
@@ -11,6 +18,12 @@ public enum ShapeClassification {
     ShapeClassification(String text) {
         this.text = text;
     }
+
+    /**
+     * Returns the readable label for this classification.
+     *
+     * @return the classification label
+     */
 
     public String label() {
         return text;
