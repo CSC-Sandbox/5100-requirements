@@ -13,7 +13,7 @@ import java.net.http.HttpResponse;
  * @author James Yaguma
  * @version 1.0 (2026-09-28)
  */
-public class GazeRESTClient {
+public class GazeRestClient {
     private final String URL;
 
     private final HttpClient client = HttpClient.newHttpClient();
@@ -22,7 +22,7 @@ public class GazeRESTClient {
      * Default constructor
      * Use localhost:8080 by default
      */
-    GazeRESTClient() {
+    GazeRestClient() {
         this("https://localhost:8080/gaze");
     }
 
@@ -32,7 +32,7 @@ public class GazeRESTClient {
      *
      * @param URL The url to connect to for http requests
      */
-    GazeRESTClient(String URL) {
+    GazeRestClient(String URL) {
         this.URL = URL;
     }
 
@@ -54,7 +54,7 @@ public class GazeRESTClient {
 
     // Main method for testing purposes
     public static void main(String[] args) {
-        GazeRESTClient client = new GazeRESTClient();
+        GazeRestClient client = new GazeRestClient();
         try {
             client.getGaze();
         } catch (Exception e) {

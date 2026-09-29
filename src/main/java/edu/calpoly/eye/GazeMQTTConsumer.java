@@ -10,7 +10,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
  * @author James Yaguma
  * @version 1.0 (2026-09-28)
  */
-public class GazeMQTTConsumer {
+public class GazeMqttConsumer {
     /**
      * Start the consumer with the hivemq broker as default
      *
@@ -47,7 +47,7 @@ public class GazeMQTTConsumer {
 
     // Main method for testing purposes
     public static void main(String[] args) {
-        GazeMQTTConsumer consumer = new GazeMQTTConsumer();
+        GazeMqttConsumer consumer = new GazeMqttConsumer();
         try {
             consumer.start();
         } catch (Exception e) {
