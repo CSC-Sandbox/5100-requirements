@@ -61,7 +61,9 @@ public class GazeRestClient {
 
     public void loopForever(int ms) throws IOException, InterruptedException{
         while(!Thread.currentThread().isInterrupted()) {
-            blackboard.updateGazePoint(getGaze());
+            GazePoint gazePoint = getGaze();
+            blackboard.updateGazePoint(gazePoint);
+            System.out.println("New GazePoint received: (" + gazePoint.x + ", " + gazePoint.y + ")");
             try {
                 Thread.sleep(ms);
             } catch (InterruptedException e) {

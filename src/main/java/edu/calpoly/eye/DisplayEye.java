@@ -32,7 +32,7 @@ public class DisplayEye {
     public static void main(String[] args) throws Exception{
         // Determine what interface to use based on args
         // b = GazeBroker, m = MQTTConsumer, r = RESTClient
-        char interfaceMode = 'm';
+        char interfaceMode = 'r';
         if (args.length > 1) {
             switch(args[0].toLowerCase()) {
                 case "b":
@@ -77,7 +77,7 @@ public class DisplayEye {
             case 'm':
                 GazeMqttConsumer consumer = new GazeMqttConsumer();
                 if (args.length > 2) {
-                    consumer.start(args[1]);
+                    consumer.start(blackboard, args[1]);
                 } else {
                     consumer.start();
                 }
