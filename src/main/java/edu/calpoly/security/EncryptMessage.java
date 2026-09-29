@@ -32,6 +32,8 @@ public final class EncryptMessage {
      * Message encryption implementation for CSC 5100
      * Utility method to encrypt a message in the form of a string.
      *
+     * @param message A message, in the form of a string, to be encrypted.
+     * @return The encrypted version of that string message.
      * @author Howard Jiang (hwrd22)
      */
     public static String encryptMessage(String message) {

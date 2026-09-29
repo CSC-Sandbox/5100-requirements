@@ -36,6 +36,8 @@ public final class DecryptMessage {
      * Message decryption implementation for CSC 5100
      * Utility class to return a decrypted message from a string input.
      *
+     * @param encryptedMessage The encrypted version of a message obtained using the encryption algorithm used in EncryptMessage.
+     * @return The original message, if applicable. If otherwise an invalid encrypted string was passed, return null.
      * @author Howard Jiang (hwrd22)
      */
     public static String decryptMessage(String encryptedMessage) {
