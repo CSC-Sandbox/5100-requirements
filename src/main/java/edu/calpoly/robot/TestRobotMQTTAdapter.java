@@ -1,70 +1,64 @@
 package edu.calpoly.robot;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Locale;
-import java.util.Random;
+import java.nio.charset.StandardCharsets;
+
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * TestRobotMQTTAdapter tests that the RobotMQTTAdapter is subscribing and updating the robotServer.
- * This test was copied from TestDispayRobot.java with minor changes.
- * Test Instructions
- * 1. Start TestRobotMQTTAdapter.
- * 2. Start RobotServer and see the GUI.
- * 3. Check the RobotServer GUI to make sure it is updating. 
- * 
+ * Publishes sample JSON robot data to test RobotMQTTAdapter.
+ *
  * @author Paul Motter (PaulMotter)
- * @version 1.0.0 (9/27/2026)
+ * @author Jess A (0x10jalencas)
+ * @version 1.1.0 (9/28/2026)
  */
 public class TestRobotMQTTAdapter {
+    private static final String BROKER =
+            "tcp://broker.hivemq.com:1883";
 
-    private static final int PORT = 5000;
-    private static final long DELAY_MS = 1000;
-    private static final Random RANDOM = new Random();
-    
-    
-    public static void main(String[] args) {
-        System.out.println("TestRobotMQTTAdapter running on localhost:" + PORT);
-        System.out.println("Run RobotServer.java and observe the robot visualization.");
-        try (ServerSocket server = new ServerSocket(PORT)) {
-            while (true) {
-            try (Socket socket = server.accept(); BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-                String mode = in.readLine();
-                if (!"RECEIVE".equals(mode)) continue;
-                System.out.println("DisplayRobot connected. Sending simulated robot poses...");
-                while (!out.checkError()) {
-                out.println(simulatedPose());
-                out.flush();
-                sleep();
-                }
-            } catch (IOException e) {
-                System.out.println("DisplayRobot disconnected. Waiting for another connection...");
-            }
-            }
-        } catch (IOException e) {
-            System.err.println("Test server stopped: " + e.getMessage());
-        }
+    private static final String VALID_MESSAGE =
+            "{\"jointAngles\":[2.0,1.75,1.0,0.5,0.25,0.0],"
+            + "\"position\":[0.5,-10.0,5.25]}";
+
+    private static final String INVALID_MESSAGE =
+            "{\"jointAngles\":[1.0,2.0],\"position\":[0.0]}";
+
+    /**
+     * Publishes valid and invalid robot messages.
+     *
+     * @param args command-line arguments; unused
+     * @throws Exception if MQTT communication fails
+     */
+    public static void main(String[] args) throws Exception {
+        MqttClient client = new MqttClient(
+                BROKER,
+                MqttClient.generateClientId());
+
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setCleanSession(true);
+        client.connect(options);    
+
+        publish(client, VALID_MESSAGE);
+        Thread.sleep(1000);
+        publish(client, INVALID_MESSAGE);
+
+        client.disconnect();
+        client.close();
     }
-    
-    private static String simulatedPose() {
-        double[] v = new double[9];
-        for (int i = 0; i < 6; i++) v[i] = -Math.PI + RANDOM.nextDouble() * 2 * Math.PI;
-        for (int i = 6; i < 9; i++) v[i] = -1.0 + RANDOM.nextDouble() * 2.0;
-        return String.format(Locale.US, "ROBOT,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f", v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]);
+
+    private static void publish(
+            MqttClient client,
+            String payload) throws Exception {
+        MqttMessage message = new MqttMessage(
+                payload.getBytes(StandardCharsets.UTF_8));
+        message.setQos(0);
+
+        client.publish(RobotMQTTAdapter.TOPIC, message);
+        System.out.println(
+                "Published to "
+                + RobotMQTTAdapter.TOPIC
+                + ": "
+                + payload);
     }
-    
-    
-    private static void sleep() throws IOException {
-        try {
-            Thread.sleep(DELAY_MS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("Robot pose simulation interrupted", e);
-        }
-    }
-    
 }
