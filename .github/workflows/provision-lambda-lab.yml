@@ -37,7 +37,8 @@ jobs:
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
           unzip -q /tmp/awscliv2.zip -d /tmp
           sudo /tmp/aws/install --update
-          aws --version
+          echo "/usr/local/bin" >> "$GITHUB_PATH"
+          /usr/local/bin/aws --version
 
       - name: Build placeholder Lambda
         run: |
