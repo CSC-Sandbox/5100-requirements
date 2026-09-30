@@ -1,0 +1,128 @@
+name: Lambda Lab CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/main/java/edu/calpoly/lambdalab/**"
+      - "src/test/java/edu/calpoly/lambdalab/**"
+      - "pom.xml"
+  push:
+    branches: [main]
+    paths:
+      - "src/main/java/edu/calpoly/lambdalab/**"
+      - "src/test/java/edu/calpoly/lambdalab/**"
+      - "pom.xml"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+      - name: Build and test
+        run: mvn clean package
+
+  deploy:
+    if: github.event_name == 'push'
+    needs: build-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: jjuangon03
+            function: csc5100-gaze-clusters
+            handler: edu.calpoly.lambdalab.jjuangon03.GazeClusterLambda::handleRequest
+          - package: aidenrodriguez
+            function: csc5100-encrypt
+            handler: edu.calpoly.lambdalab.aidenrodriguez.EncryptMessageLambda::handleRequest
+          - package: adrian0427
+            function: csc5100-dominant-affect
+            handler: edu.calpoly.lambdalab.adrian0427.DominantAffectLambda::handleRequest
+          - package: oxlojalencas
+            function: csc5100-nearest-sample
+            handler: edu.calpoly.lambdalab.oxlojalencas.NearestSampleLambda::handleRequest
+          - package: paulmotter
+            function: csc5100-robot-distance
+            handler: edu.calpoly.lambdalab.paulmotter.RobotDistanceLambda::handleRequest
+          - package: edgarddragde
+            function: csc5100-robot-reachability
+            handler: edu.calpoly.lambdalab.edgarddragde.RobotReachabilityLambda::handleRequest
+          - package: briggsmurphy
+            function: csc5100-lidar-closest
+            handler: edu.calpoly.lambdalab.briggsmurphy.LidarClosestLambda::handleRequest
+          - package: ejiswkrosmew
+            function: csc5100-lidar-safety
+            handler: edu.calpoly.lambdalab.ejiswkrosmew.LidarSafetyLambda::handleRequest
+          - package: hwrd22
+            function: csc5100-data-freshness
+            handler: edu.calpoly.lambdalab.hwrd22.DataFreshnessLambda::handleRequest
+          - package: daome
+            function: csc5100-moving-average
+            handler: edu.calpoly.lambdalab.daome.MovingAverageLambda::handleRequest
+          - package: dylangururajan
+            function: csc5100-coordinate-normalizer
+            handler: edu.calpoly.lambdalab.dylangururajan.CoordinateNormalizerLambda::handleRequest
+          - package: wliu4040
+            function: csc5100-event-rate
+            handler: edu.calpoly.lambdalab.wliu4040.EventRateLambda::handleRequest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Detect package change
+        id: changed
+        shell: bash
+        run: |
+          if git diff --quiet HEAD^ HEAD --             "src/main/java/edu/calpoly/lambdalab/${{ matrix.package }}/"             "src/test/java/edu/calpoly/lambdalab/${{ matrix.package }}/"; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Package application
+        if: steps.changed.outputs.deploy == 'true'
+        run: mvn -DskipTests package
+
+      - name: Configure AWS credentials
+        if: steps.changed.outputs.deploy == 'true'
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Install AWS CLI
+        if: steps.changed.outputs.deploy == 'true'
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+          unzip -q /tmp/awscliv2.zip -d /tmp
+          sudo /tmp/aws/install --update
+          /usr/local/bin/aws --version
+
+      - name: Deploy student Lambda
+        if: steps.changed.outputs.deploy == 'true'
+        run: |
+          /usr/local/bin/aws lambda update-function-code             --function-name "${{ matrix.function }}"             --zip-file fileb://target/csc5100-1.0.jar
+
+          /usr/local/bin/aws lambda wait function-updated-v2             --function-name "${{ matrix.function }}"
+
+          /usr/local/bin/aws lambda update-function-configuration             --function-name "${{ matrix.function }}"             --handler "${{ matrix.handler }}"
+
+          /usr/local/bin/aws lambda wait function-updated-v2             --function-name "${{ matrix.function }}"
