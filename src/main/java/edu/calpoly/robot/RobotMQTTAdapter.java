@@ -15,8 +15,9 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
  * @version 1.1.0 (9/28/2026)
  */
 public class RobotMQTTAdapter extends Thread {
-    public static final String TOPIC = "robot/1";
+    public static final String BASE_TOPIC = "csc5100/robot/";
 
+    private final String topic;
     private final String brokerURI;
     private final Consumer<RobotMessage> onSub;
     private final ObjectMapper mapper;
@@ -32,10 +33,12 @@ public class RobotMQTTAdapter extends Thread {
     RobotMQTTAdapter(
             String brokerHost,
             int brokerPort,
+            int robotID,
             RobotBlackBoard rbb) {
         brokerURI = "tcp://" + brokerHost + ":" + brokerPort;
         onSub = rbb::post;
         mapper = new ObjectMapper();
+        topic = BASE_TOPIC + robotID;
     }
 
     /**
@@ -55,7 +58,7 @@ public class RobotMQTTAdapter extends Thread {
             options.setAutomaticReconnect(true);
 
             client.connect(options);
-            client.subscribe(TOPIC, (topic, message) -> {
+            client.subscribe(topic, (topic, message) -> {
                 try {
                     RobotMessage robotMessage = mapper.readValue(
                             message.getPayload(),
@@ -67,7 +70,7 @@ public class RobotMQTTAdapter extends Thread {
                 }
             });
 
-            System.out.println("Subscribed to " + TOPIC);
+            System.out.println("Subscribed to " + topic);
         } catch (Exception e) {
             System.err.println(
                     "Unable to start MQTT subscriber: " + e.getMessage());

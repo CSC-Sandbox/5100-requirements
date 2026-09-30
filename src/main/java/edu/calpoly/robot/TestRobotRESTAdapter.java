@@ -1,66 +1,56 @@
 package edu.calpoly.robot;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpRequest.BodyPublishers;;
 
 /**
  * TestRobotRESTAdapter is a test for the REST adapter.
  * Test Instructions: 
  *  1. Start RobotServer on localHost, 
  *  2. Start TestRobotRESTAdapter. 
- *  3. You should see prints of the communication check wether posts and returns are equivalent.
+ *  3. You should see prints of test cases and wether the check passed.
  * @author Paul Motter (PaulMotter)
  * @version 1.0.0 (9/27/2026)
  */
 public class TestRobotRESTAdapter {
+
+    private static final String VALID_MESSAGE =
+        "{\"jointAngles\":[2.0,1.75,1.0,0.5,0.25,0.0],"
+        + "\"position\":[0.5,-10.0,5.25]}";
+
+private static final String INVALID_MESSAGE =
+        "{\"jointAngles\":[1.0,2.0],\"position\":[0.0]}";
     public static void main(String[] args) throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newHttpClient();
+        RobotRESTProvider provider = new RobotRESTProvider(
+            RobotServer.REST_PORT,
+            RobotServer.ROBOT_ID);
 
-        // Sends PUT request.
-        String PUTBody = "{\"jointAngles\":[2.0,1.75,1.0,0.5,0.25,0.0],\"position\":[0.5,-10.0,5.25]}";
-        HttpRequest PUTRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:5001/robot/1"))
-            .PUT(BodyPublishers.ofString(PUTBody))
-            .build();
-        System.out.println("\nPUT: " + PUTBody);
-        
-        // Gets PUT response.
-        HttpResponse<String> PUTResponse = client.send(PUTRequest, HttpResponse.BodyHandlers.ofString());
-        System.out.println("Return: Status=" + PUTResponse.statusCode() + " Body=" + PUTResponse.body());
-    
-        // Sends GET request.
-        HttpRequest GETRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:5001/robot/1"))
-            .GET()
-            .build();
-            
-    
-        // Gets GET response.
-        HttpResponse<String> GETResponse = client.send(GETRequest, HttpResponse.BodyHandlers.ofString());
-        System.out.println("\nGET Return: Status=" + GETResponse.statusCode() + " Body=" + GETResponse.body());
-    
-        // Print If data equals what is expected.
-        if (PUTBody.equals(PUTResponse.body()))System.out.println("\nCorrect: PUTBody equals PUTReturn");
-        else System.out.println("\nIncorrect: PUTBody does not equal PUTReturn");
+        HttpResponse<String> response;
+        String testName;
 
-        if (PUTBody.equals(GETResponse.body())) System.out.println("Correct: PUTBody equals GETBody");
-        else System.out.println("Incorrect: PUTBody does not equal GETBody");
+        testName = "PUT Valid Message";
+        response = provider.requestPUT(VALID_MESSAGE);
+        checkInt(200, response.statusCode(), testName+" Status 200");
+        checkString(VALID_MESSAGE, response.body(), testName+" Body Match");
 
-        // Sends malformed PUT request. only 5 joints and 4 postion values.
-        String badPUTBody = "{\"jointAngles\":[1.75,1.0,0.5,0.25,0.0],\"position\":[0.5,-10.0,5.25,-18]}";
-        HttpRequest badPUTRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:5001/robot/1"))
-            .PUT(BodyPublishers.ofString(badPUTBody))
-            .build();
-        System.out.println("\nbadPUT: " + badPUTBody);
-        
+        testName = "PUT Invalid Message";
+        response = provider.requestPUT(INVALID_MESSAGE);
+        checkInt(400, response.statusCode(), testName+" Status 400");
+        checkString("Invalid JSON", response.body(), testName+" Body Match");
 
-        // Gets PUT response.
-        HttpResponse<String> badPUTResponse = client.send(badPUTRequest, HttpResponse.BodyHandlers.ofString());
-        System.out.println("Return: Status=" + badPUTResponse.statusCode() + " Body=" + badPUTResponse.body());
+        testName = "GET";
+        response = provider.requestGET();
+        checkInt(200, response.statusCode(), testName+" Status 200");
+        checkString(VALID_MESSAGE, response.body(), testName+" Body Match");
+    }
+
+    private static void checkString(String expected, String actual, String testName){
+        if (expected.equals(actual)) System.out.println("[pass] "+testName);
+        else System.out.println("[fail] "+testName);
+    }
+
+    private static void checkInt(int expected, int actual, String testName){
+    if (expected == actual) System.out.println("[pass] "+testName);
+    else System.out.println("[fail] "+testName);
     }
 }
