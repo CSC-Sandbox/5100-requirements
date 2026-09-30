@@ -10,7 +10,7 @@ import edu.calpoly.provided.Broker;
  * Utilizes Broker.java which was provided to send/receive messages over TCP sockets
  *
  * @author James Yaguma
- * @version 1.0 (2026-09-25)
+ * @version 1.1 (2026-09-29)
  */
 public class GazeBroker {
 
@@ -48,7 +48,7 @@ public class GazeBroker {
      *
      * @param onMessage Method to call upon receiving a valid GAZE message
      */
-    public void loopForever(Consumer<GazePoint> onMessage) {
+    public void loopForever(GazeBlackboard blackboard) {
         Pattern msgPattern = Pattern.compile("\\AGAZE,(-?\\d+(?:\\.\\d+)?),(-?\\d+(?:\\.\\d+)?)\\Z");
         try {
             while (true) {
@@ -78,12 +78,11 @@ public class GazeBroker {
 
                 // Message seems to be fine so act on the message
                 gazePoint.setXY(newX, newY);
+                blackboard.updateGazePoint(gazePoint);
 
                 if (debug) {
                     System.out.println("New position: " + newX + ", " + newY);
                 }
-
-                onMessage.accept(gazePoint);
             }
         } catch (IllegalStateException e) {
             // TODO: Disconnected

@@ -1,19 +1,18 @@
 package edu.calpoly.eye;
 
 import javax.swing.*;
+import java.util.Locale;
 
 /**
  * Main file to run for the visualization
- * Creates and starts the broker (GazeBroker) used to receive messages
  * Also initializes the GUI frame
  *
  * @author James Yaguma
- * @version 1.0 (2026-09-25)
+ * @version 1.1 (2026-09-29)
  */
 public class DisplayEye {
     private final int width = 800;
     private final int height = 600;
-    private final GazeBroker broker;
     private final GazeGUI gui;
 
     /**
@@ -21,7 +20,6 @@ public class DisplayEye {
      * Initializes the GazeBroker and GUI objects
      */
     DisplayEye() {
-        broker = new GazeBroker("localhost", 5000, true);
         gui = new GazeGUI(width, height);
     }
 
@@ -31,7 +29,34 @@ public class DisplayEye {
      *
      * @param args Command line args (unused)
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception{
+        // Determine what interface to use based on args
+        // b = GazeBroker, m = MQTTConsumer, r = RESTClient
+        char interfaceMode = 'b';
+        if (args.length > 1) {
+            switch(args[0].toLowerCase()) {
+                case "b":
+                case "broker":
+                case "gazebroker":
+                    interfaceMode = 'b';
+                    break;
+                case "m":
+                case "mqtt":
+                case "mqttconsumer":
+                case "gazemqttconsumer":
+                    interfaceMode = 'm';
+                    break;
+                case "r":
+                case "rest":
+                case "restclient":
+                case "gazerestclient":
+                    interfaceMode = 'r';
+                    break;
+                default:
+                    System.out.println("\"" + args[0] + "\" was not recognized as a valid interface mode. Defaulting to \"" + interfaceMode + "\"...");
+            }
+        }
+
         DisplayEye displayEye = new DisplayEye();
 
         // Initial frame setup
@@ -44,7 +69,34 @@ public class DisplayEye {
         displayEye.gui.addToFrame(frame);
         frame.setVisible(true);
 
-        // Start receiving messages
-        displayEye.broker.loopForever(displayEye.gui::update);
+        // Add update callback to the GazeBlackboard
+        GazeBlackboard blackboard = GazeBlackboard.getInstance();
+        blackboard.addCallback(displayEye.gui::update);
+
+        // Based on which interface to use, start consuming data
+        switch(interfaceMode) {
+            case 'm':
+                GazeMqttConsumer consumer = new GazeMqttConsumer();
+                if (args.length > 2) {
+                    consumer.start(blackboard, args[1]);
+                } else {
+                    consumer.start();
+                }
+                break;
+            case 'r':
+                GazeRestClient client;
+                if (args.length > 2) {
+                    client = new GazeRestClient(blackboard, args[1]);
+                } else {
+                    client = new GazeRestClient();
+                }
+
+                Thread clientThread = new Thread(client::loopForever);
+                clientThread.start();
+                break;
+            default:
+                GazeBroker broker = new GazeBroker("localhost", 5000);
+                broker.loopForever(blackboard);
+        }
     }
 }
