@@ -11,11 +11,11 @@ import javax.swing.JFrame;
  * @version 1.0.1 (9/26/2026)
  */
 public class RobotServer {
-    private static final String MQTT_HOST = "broker.hivemq.com";
-    private static final int MQTT_PORT = 1883;
+    protected static final String MQTT_HOST = "broker.hivemq.com";
+    protected static final int MQTT_PORT = 1883;
 
-    private static final int REST_PORT = 5001;
-    private static final int ROBOT_ID = 1;
+    protected static final int REST_PORT = 5001;
+    protected static final int ROBOT_ID = 1;
 
     /**
      * The entry point for the server.
@@ -40,7 +40,7 @@ public class RobotServer {
         rbb.callbackOnPost(robotGUI::update);
 
         // MQTT adapter.
-        Thread t1 = new RobotMQTTAdapter(MQTT_HOST, MQTT_PORT, rbb); //subscriber, grabs callbacks from rbb
+        Thread t1 = new RobotMQTTAdapter(MQTT_HOST, MQTT_PORT, ROBOT_ID, rbb); //subscriber, grabs callbacks from rbb
         t1.start();
 
         // REST adapter.

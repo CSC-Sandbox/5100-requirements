@@ -14,11 +14,11 @@ public class RobotMessage {
     public float[] position = new float[3];
 
     /**
-     * Is used by Jackson to parse JSON into a RobotMessage.
+     * Creates a RobotMessage from an array of jointAngles and positions.
      * @param jointAngles
      * @param position
      */
-    private RobotMessage(
+    public RobotMessage(
             @JsonProperty("jointAngles") float[] jointAngles,
             @JsonProperty("position")    float[] position) {
     
@@ -40,32 +40,6 @@ public class RobotMessage {
     RobotMessage(RobotMessage rm){
         jointAngles = rm.jointAngles.clone();
         position = rm.position.clone();
-    }
-
-    /**
-     * Parses a string into a RobotMessage. String should be of the form "ROBOT,J1,J2,J3,J4,J5,J6,X,Y,Z"
-     * @param message The string to be parsed.
-     */
-    RobotMessage(String message){
-        // expect: "ROBOT,J1,J2,J3,J4,J5,J6,X,Y,Z"
-        if (!message.startsWith("ROBOT")){
-            throw new Error("message is not ROBOT.");
-        }
-
-        String[] parts = message.split(",");
-        // expect: [ROBOT, J1, J2, J3, J4, J5, J6, X, Y, Z]
-        if (parts.length != 10){
-            throw new Error("ROBOT message has unexpected amount of data. Expected 10 parts, recieved " + parts.length + ".");
-        }
-
-        // Parse joint angles.
-        for (int i=0; i<6; ++i){
-            jointAngles[i] = Float.parseFloat(parts[i+1]);
-        }
-        // Parse position.
-        for (int i=0; i<3; ++i){
-            position[i] = Float.parseFloat(parts[i+7]);
-        }
     }
 
     /**
