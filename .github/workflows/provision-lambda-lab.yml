@@ -90,11 +90,33 @@ jobs:
             IFS='|' read -r FUNCTION METHOD PATH HANDLER <<< "$item"
             echo "=== $FUNCTION : $METHOD $PATH ==="
 
-            if ! /usr/local/bin/aws lambda get-function                 --function-name "$FUNCTION" >/dev/null 2>&1; then
-              /usr/local/bin/aws lambda create-function                 --function-name "$FUNCTION"                 --runtime java17                 --architectures x86_64                 --role "$EXECUTION_ROLE_ARN"                 --handler "$HANDLER"                 --zip-file fileb:///tmp/csc5100-placeholder.jar                 --timeout 10                 --memory-size 512 >/dev/null
-              /usr/local/bin/aws lambda wait function-active-v2                 --function-name "$FUNCTION"
+            PLACEHOLDER_HANDLER="edu.calpoly.lambdalab.PlaceholderLambda::handleRequest"
+
+            if ! /usr/local/bin/aws lambda get-function \
+                --function-name "$FUNCTION" >/dev/null 2>&1; then
+              /usr/local/bin/aws lambda create-function \
+                --function-name "$FUNCTION" \
+                --runtime java17 \
+                --architectures x86_64 \
+                --role "$EXECUTION_ROLE_ARN" \
+                --handler "$PLACEHOLDER_HANDLER" \
+                --zip-file fileb:///tmp/csc5100-placeholder.jar \
+                --timeout 10 \
+                --memory-size 512 >/dev/null
+              /usr/local/bin/aws lambda wait function-active-v2 \
+                --function-name "$FUNCTION"
             else
-              echo "Lambda already exists; leaving it in place."
+              echo "Lambda already exists; resetting placeholder code and handler."
+              /usr/local/bin/aws lambda update-function-code \
+                --function-name "$FUNCTION" \
+                --zip-file fileb:///tmp/csc5100-placeholder.jar >/dev/null
+              /usr/local/bin/aws lambda wait function-updated-v2 \
+                --function-name "$FUNCTION"
+              /usr/local/bin/aws lambda update-function-configuration \
+                --function-name "$FUNCTION" \
+                --handler "$PLACEHOLDER_HANDLER" >/dev/null
+              /usr/local/bin/aws lambda wait function-updated-v2 \
+                --function-name "$FUNCTION"
             fi
 
             FUNCTION_ARN=$(/usr/local/bin/aws lambda get-function               --function-name "$FUNCTION"               --query 'Configuration.FunctionArn'               --output text)
