@@ -2,22 +2,22 @@
 
 ### RobotServer.java
 
-- Starts the robot server with a GUI, BlackBoard, MQTT adapter, and REST adapter. Rest endpoints are `PUT /robot/1` and `GET /robot/1`. This server provides Robot information on GET requests and visualizes all information from PUTs and pusblishers.
+- Starts the robot server with a GUI, BlackBoard, MQTT adapter, and REST adapter. Rest endpoints are `PUT /robot` and `GET /robot`. This server provides Robot information on GET requests and visualizes all information from PUTs and publishers.
 
 ### RobotRESTAdapter.java
 
 - Defines REST interactions with `RobotServer.java` specifically through stored callback functions.
 - Endpoints
-    - `PUT http://localhost:5001/robot/1` recieves a json body of `{"jointAngles":[j1,j2,j3,j4,j5,j6],"position":[x,y,z]}` and updates the `RobotBlackBoard` within the `RobotServer`.
-    - `GET http://localhost:5001/robot/1` returns the latest robot data as JSON, or `404` when no data exists.
+    - `PUT http://localhost:5001/robot` receives a JSON body of `{"jointAngles":[j1,j2,j3,j4,j5,j6],"position":[x,y,z]}` and updates the `RobotBlackBoard` within the `RobotServer`.
+    - `GET http://localhost:5001/robot` returns the latest robot data as JSON, or `404` when no data exists.
 
 ### TestRobotRESTAdapter.java
 
-- Creates a RobotRESTProvider and sends messages to a RobotServer running on local host. The testcases will print pass or fail.
+- Creates a RobotRESTProvider and sends messages to a RobotServer running on localhost. The test cases will print pass or fail.
 
 ### RobotMQTTAdapter.java
 
-- Subscribes to MQTT topic `robot/1` using Paho.
+- Subscribes to MQTT topic `csc5100/robot/1` using Paho.
 - Valid JSON robot data is posted to `RobotBlackBoard`.
 - Invalid messages are reported and ignored.
 
@@ -33,8 +33,8 @@
 
 ### RobotMQTTProvider.java
 
-- Assists in publishing to the RobotServer MQTT topic.
-- Payloads cna be String or RobotMessage.
+- Publishes robot data to the MQTT broker for the RobotServer to receive.
+- Payloads can be String or RobotMessage.
 
 ### RobotGUI.java
 
@@ -56,7 +56,7 @@
 
 ### RobotMessage.java
 
-- A data class for parsing "ROBOT" messages. Also allows for deep copying and a formatted `toString()`. Is used to update Robot instances.
+- Represents robot data containing six joint angles and a 3D position. The same format is used by REST and MQTT. Also allows for deep copying and a formatted `toString()`. Is used to update the robot display.
 
 ### RobotBlackBoard.java
 
@@ -73,15 +73,13 @@
 ## Running Tests
 
 1. Run `mvn clean test`.
-2. Run `TestRobotRESTClient` to test REST consumption.
-3. Start `RobotServer`, then run `TestRobotRESTAdapter` to test REST endpoints.
-4. Start `RobotServer`, then run `TestRobotMQTTAdapter` to test MQTT consumption.
+2. Start `RobotServer`, then run `TestRobotRESTAdapter` to test REST endpoints.
+3. Start `RobotServer`, then run `TestRobotMQTTAdapter` to test MQTT consumption.
 
 ## Communication Contract
 
 Below is the following of what we established:
 
-- REST endpoint: `GET /robot/1`
-- MQTT topic: `robot/1`
+- REST endpoint: `GET /robot`
+- MQTT topic: `csc5100/robot/1`
 - Both interfaces use the same JSON `RobotMessage` format.
-- Note that these team-agreed paths differ from the original backlog contract.
