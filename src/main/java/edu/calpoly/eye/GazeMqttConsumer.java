@@ -49,7 +49,7 @@ public class GazeMqttConsumer {
                 gazePoint = GazePoint.fromJSON(message.getPayload());
                 //TODO: send gp to GazeBlackboard
                 blackboard.updateGazePoint(gazePoint);
-                System.out.println("New GazePoint received: (" + gazePoint.x + ", " + gazePoint.y + ")");
+                System.err.println("New GazePoint received: (" + gazePoint.x + ", " + gazePoint.y + ")");
             } catch (Exception e) {
                 System.err.println("Invalid GAZE message received: " + e.getMessage());
             }

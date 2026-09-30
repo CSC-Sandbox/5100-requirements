@@ -78,11 +78,11 @@ public class GazeRestClient {
                 System.out.println("New GazePoint received: (" + gazePoint.x + ", " + gazePoint.y + ")");
                 Thread.sleep(ms);
             } catch (InterruptedException e) {
-                System.out.println("REST client interrupted: " + e.getMessage());
+                System.err.println("REST client interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();
                 break;
-            } catch (IOException e) {
-                System.out.println("REST client failed: " + e.getMessage());
+            } catch (Exception e) {
+                System.err.println("REST client failed: " + e.getMessage());
             }
         }
     }
