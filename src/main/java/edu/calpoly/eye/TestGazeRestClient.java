@@ -1,15 +1,26 @@
 package edu.calpoly.eye;
 
 import com.sun.net.httpserver.HttpServer;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+/**
+ * Class to test the REST client
+ * Run this file directly to start the test server
+ *
+ * @author James Yaguma
+ * @version 1.0 (2026-09-30)
+ */
 public class TestGazeRestClient {
     private static final String URL = "http://localhost:8080/gaze";
 
+    /**
+     * Main method
+     * Run to start sending REST server
+     *
+     * @param args
+     */
     public static void main(String[] args) {
         TestGazeMessages messages = new TestGazeMessages();
         try {
