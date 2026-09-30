@@ -32,12 +32,13 @@ public class DisplayEye {
     public static void main(String[] args) throws Exception{
         // Determine what interface to use based on args
         // b = GazeBroker, m = MQTTConsumer, r = RESTClient
-        char interfaceMode = 'r';
+        char interfaceMode = 'b';
         if (args.length > 1) {
             switch(args[0].toLowerCase()) {
                 case "b":
                 case "broker":
                 case "gazebroker":
+                    interfaceMode = 'b';
                     break;
                 case "m":
                 case "mqtt":
@@ -52,7 +53,7 @@ public class DisplayEye {
                     interfaceMode = 'r';
                     break;
                 default:
-                    System.out.println("\"" + args[0] + "\" was not recognized as a valid interface mode. Defaulting to GazeBroker...");
+                    System.out.println("\"" + args[0] + "\" was not recognized as a valid interface mode. Defaulting to \"" + interfaceMode + "\"...");
             }
         }
 
@@ -90,13 +91,7 @@ public class DisplayEye {
                     client = new GazeRestClient();
                 }
 
-                Thread clientThread = new Thread(() -> {
-                    try {
-                        client.loopForever();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
+                Thread clientThread = new Thread(client::loopForever);
                 clientThread.start();
                 break;
             default:

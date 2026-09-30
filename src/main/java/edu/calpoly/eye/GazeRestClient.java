@@ -24,7 +24,7 @@ public class GazeRestClient {
      * Use localhost:8080 and GazeBlackboard by default
      */
     GazeRestClient() {
-        this(GazeBlackboard.getInstance() ,"http://localhost:8080/gaze");
+        this(GazeBlackboard.getInstance(), "http://localhost:8080/gaze");
     }
 
     /**
@@ -32,7 +32,7 @@ public class GazeRestClient {
      * This needs the full path (not just host and port)
      *
      * @param blackboard The blackboard to put new gaze data into
-     * @param URL The url to connect to for http requests
+     * @param URL        The url to connect to for http requests
      */
     GazeRestClient(GazeBlackboard blackboard, String URL) {
         this.blackboard = blackboard;
@@ -55,32 +55,35 @@ public class GazeRestClient {
         return GazePoint.fromJSON(res.body());
     }
 
-    public void loopForever() throws IOException, InterruptedException {
+    /**
+     * Starts a loop forever with 150ms default delay between requests
+     *
+     * @see #loopForever(int)
+     */
+    public void loopForever() {
         loopForever(150);
     }
 
-    public void loopForever(int ms) throws IOException, InterruptedException{
-        while(!Thread.currentThread().isInterrupted()) {
-            GazePoint gazePoint = getGaze();
-            blackboard.updateGazePoint(gazePoint);
-            System.out.println("New GazePoint received: (" + gazePoint.x + ", " + gazePoint.y + ")");
+    /**
+     * Start a loop to request gaze data and put it into the blackboard
+     * Won't stop until interrupted
+     *
+     * @param ms The delay between each request in milliseconds
+     */
+    public void loopForever(int ms) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
+                GazePoint gazePoint = getGaze();
+                blackboard.updateGazePoint(gazePoint);
+                System.out.println("New GazePoint received: (" + gazePoint.x + ", " + gazePoint.y + ")");
                 Thread.sleep(ms);
             } catch (InterruptedException e) {
+                System.out.println("REST client interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();
                 break;
+            } catch (IOException e) {
+                System.out.println("REST client failed: " + e.getMessage());
             }
-        }
-    }
-
-    // Main method for testing purposes
-    public static void main(String[] args) {
-        GazeRestClient client = new GazeRestClient();
-        try {
-            GazePoint gp = client.getGaze();
-            System.out.println("New GazePoint received: (" + gp.x + ", " + gp.y + ")");
-        } catch (Exception e) {
-            System.out.println("GetGaze got error: " + e.getMessage());
         }
     }
 }

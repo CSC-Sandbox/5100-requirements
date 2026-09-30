@@ -55,14 +55,4 @@ public class GazeMqttConsumer {
             }
         });
     }
-
-    // Main method for testing purposes
-    public static void main(String[] args) {
-        GazeMqttConsumer consumer = new GazeMqttConsumer();
-        try {
-            consumer.start();
-        } catch (Exception e) {
-            System.out.println("MQTTConsumer got error: " + e.getMessage());
-        }
-    }
 }
