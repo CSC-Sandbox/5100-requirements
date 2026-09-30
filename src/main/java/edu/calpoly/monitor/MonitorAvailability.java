@@ -130,6 +130,23 @@ public class MonitorAvailability {
         return List.copyOf(communicationFailures);
     }
 
+    /**
+     * Starts a background thread that receives messages from the provided
+     * Broker and updates the availability state of monitored sources.
+     */
+    public void startReceiving() {
+        Thread receiverThread = new Thread(() -> {
+            Broker broker = new Broker("localhost", 5000);
+
+            while (true) {
+                String message = broker.receive();
+                processMessage(message);
+            }
+        });
+
+        receiverThread.start();
+    }
+
     private void processMessage(String message) {
         DataSource.fromMessage(message)
                 .ifPresent(this::recordMessage);
@@ -232,19 +249,7 @@ public class MonitorAvailability {
             MonitorAvailability monitor =
                     new MonitorAvailability();
 
-            Thread receiverThread = new Thread(() -> {
-                Broker broker =
-                        new Broker("localhost", 5000);
-
-                while (true) {
-                    String message =
-                            broker.receive();
-
-                    monitor.processMessage(message);
-                }
-            });
-
-            receiverThread.start();
+            monitor.startReceiving();
         });
     }
 }
