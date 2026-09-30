@@ -1,0 +1,113 @@
+name: Provision Lambda Lab Infrastructure
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-west-2
+  API_ID: copjvt5e6i
+  EXECUTION_ROLE_ARN: arn:aws:iam::718844157054:role/CSC5100LambdaExecutionRole
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build placeholder Lambda
+        run: |
+          mkdir -p /tmp/csc5100-placeholder/src/edu/calpoly/lambdalab
+          cat > /tmp/csc5100-placeholder/src/edu/calpoly/lambdalab/PlaceholderLambda.java <<'JAVA'
+          package edu.calpoly.lambdalab;
+
+          import java.util.Map;
+
+          public class PlaceholderLambda {
+              public Map<String, Object> handleRequest(
+                      Map<String, Object> event,
+                      Object context) {
+                  return Map.of(
+                      "statusCode", 503,
+                      "headers", Map.of("Content-Type", "application/json"),
+                      "body", "{\"message\":\"Student Lambda not deployed yet\"}"
+                  );
+              }
+          }
+          JAVA
+          javac -d /tmp/csc5100-placeholder/classes             /tmp/csc5100-placeholder/src/edu/calpoly/lambdalab/PlaceholderLambda.java
+          jar cf /tmp/csc5100-placeholder.jar             -C /tmp/csc5100-placeholder/classes .
+
+      - name: Provision Lambda functions and HTTP API routes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          API_EXECUTION_ARN="arn:aws:execute-api:${AWS_REGION}:${ACCOUNT_ID}:${API_ID}"
+
+          FUNCTIONS=(
+            "csc5100-gaze-clusters|POST|/5100/gaze-clusters|edu.calpoly.lambdalab.jjuangon03.GazeClusterLambda::handleRequest"
+            "csc5100-encrypt|GET|/5100/encrypt|edu.calpoly.lambdalab.aidenrodriguez.EncryptMessageLambda::handleRequest"
+            "csc5100-dominant-affect|POST|/5100/dominant-affect|edu.calpoly.lambdalab.adrian0427.DominantAffectLambda::handleRequest"
+            "csc5100-nearest-sample|POST|/5100/nearest-sample|edu.calpoly.lambdalab.oxlojalencas.NearestSampleLambda::handleRequest"
+            "csc5100-robot-distance|GET|/5100/robot-distance|edu.calpoly.lambdalab.paulmotter.RobotDistanceLambda::handleRequest"
+            "csc5100-robot-reachability|GET|/5100/robot-reachability|edu.calpoly.lambdalab.edgarddragde.RobotReachabilityLambda::handleRequest"
+            "csc5100-lidar-closest|POST|/5100/lidar-closest|edu.calpoly.lambdalab.briggsmurphy.LidarClosestLambda::handleRequest"
+            "csc5100-lidar-safety|POST|/5100/lidar-safety|edu.calpoly.lambdalab.ejiswkrosmew.LidarSafetyLambda::handleRequest"
+            "csc5100-data-freshness|GET|/5100/data-freshness|edu.calpoly.lambdalab.hwrd22.DataFreshnessLambda::handleRequest"
+            "csc5100-moving-average|POST|/5100/moving-average|edu.calpoly.lambdalab.daome.MovingAverageLambda::handleRequest"
+            "csc5100-coordinate-normalizer|GET|/5100/coordinate-normalizer|edu.calpoly.lambdalab.dylangururajan.CoordinateNormalizerLambda::handleRequest"
+            "csc5100-event-rate|GET|/5100/event-rate|edu.calpoly.lambdalab.wliu4040.EventRateLambda::handleRequest"
+          )
+
+          for item in "${FUNCTIONS[@]}"; do
+            IFS='|' read -r FUNCTION METHOD PATH HANDLER <<< "$item"
+            echo "=== $FUNCTION : $METHOD $PATH ==="
+
+            if ! aws lambda get-function                 --function-name "$FUNCTION" >/dev/null 2>&1; then
+              aws lambda create-function                 --function-name "$FUNCTION"                 --runtime java17                 --architectures x86_64                 --role "$EXECUTION_ROLE_ARN"                 --handler "$HANDLER"                 --zip-file fileb:///tmp/csc5100-placeholder.jar                 --timeout 10                 --memory-size 512 >/dev/null
+              aws lambda wait function-active-v2                 --function-name "$FUNCTION"
+            else
+              echo "Lambda already exists; leaving it in place."
+            fi
+
+            FUNCTION_ARN=$(aws lambda get-function               --function-name "$FUNCTION"               --query 'Configuration.FunctionArn'               --output text)
+
+            INTEGRATION_ID=$(aws apigatewayv2 get-integrations               --api-id "$API_ID"               --query "Items[?IntegrationUri=='$FUNCTION_ARN'].IntegrationId | [0]"               --output text)
+
+            if [[ -z "$INTEGRATION_ID" || "$INTEGRATION_ID" == "None" ]]; then
+              INTEGRATION_ID=$(aws apigatewayv2 create-integration                 --api-id "$API_ID"                 --integration-type AWS_PROXY                 --integration-uri "$FUNCTION_ARN"                 --payload-format-version "2.0"                 --query IntegrationId                 --output text)
+            fi
+
+            ROUTE_KEY="$METHOD $PATH"
+            ROUTE_ID=$(aws apigatewayv2 get-routes               --api-id "$API_ID"               --query "Items[?RouteKey=='$ROUTE_KEY'].RouteId | [0]"               --output text)
+
+            if [[ -z "$ROUTE_ID" || "$ROUTE_ID" == "None" ]]; then
+              aws apigatewayv2 create-route                 --api-id "$API_ID"                 --route-key "$ROUTE_KEY"                 --target "integrations/$INTEGRATION_ID" >/dev/null
+            else
+              echo "Route already exists; leaving it in place."
+            fi
+
+            STATEMENT_ID="apigateway-${FUNCTION#csc5100-}"
+            aws lambda add-permission               --function-name "$FUNCTION"               --statement-id "$STATEMENT_ID"               --action lambda:InvokeFunction               --principal apigateway.amazonaws.com               --source-arn "$API_EXECUTION_ARN/*/$METHOD$PATH"               >/dev/null 2>&1 ||               echo "Lambda invoke permission already exists."
+
+            echo "Ready: https://api.javiergs.phd$PATH"
+          done
