@@ -42,4 +42,18 @@ class TemperatureLambdaTest {
     assertEquals(400, response.get("statusCode"));
   }
 
+  @Test
+  void convertsFahrenheitToCelsiusUsingGet() {
+    TemperatureLambda lambda = new TemperatureLambda();
+    Map<String, Object> queryParameters = new HashMap<>();
+    queryParameters.put("value", "32");
+    queryParameters.put("from", "F");
+    queryParameters.put("to", "C");
+    Map<String, Object> event = new HashMap<>();
+    event.put("queryStringParameters", queryParameters);
+    Map<String, Object> response = lambda.handleRequest(event, null);
+    assertEquals(200, response.get("statusCode"));
+    assertTrue(response.get("body").toString().contains("\"result\":0.0"));
+  }
+
 }

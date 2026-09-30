@@ -18,13 +18,20 @@ public class TemperatureLambda implements RequestHandler<Map<String, Object>, Ma
   private final ObjectMapper mapper = new ObjectMapper();
 
   @Override
-  public Map<String, Object> handleRequest(
-      Map<String, Object> event,
-      Context context) {
+  public Map<String, Object> handleRequest(Map<String, Object> event, Context context) {
     try {
-      String body = event.get("body").toString();
-      Map<String, Object> input = mapper.readValue(body, Map.class);
-      double value = ((Number) input.get("value")).doubleValue();
+      Map<String, Object> input;
+      // GET
+      if (event.get("queryStringParameters") != null) {
+        input = (Map<String, Object>)
+            event.get("queryStringParameters");
+      }
+      // POST
+      else {
+        String body = event.get("body").toString();
+        input = mapper.readValue(body, Map.class);
+      }
+      double value = Double.parseDouble(input.get("value").toString());
       String from = input.get("from").toString();
       String to = input.get("to").toString();
       double result = convertTemperature(value, from, to);
