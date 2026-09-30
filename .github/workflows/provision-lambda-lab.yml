@@ -50,8 +50,7 @@ jobs:
 
           public class PlaceholderLambda {
               public Map<String, Object> handleRequest(
-                      Map<String, Object> event,
-                      Object context) {
+                      Map<String, Object> event) {
                   return Map.of(
                       "statusCode", 503,
                       "headers", Map.of("Content-Type", "application/json"),
