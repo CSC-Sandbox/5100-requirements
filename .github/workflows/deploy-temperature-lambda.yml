@@ -38,10 +38,6 @@ jobs:
         run: mvn clean package
 
       # 4. Authenticate GitHub Actions with AWS using OIDC
-      - name: Debug OIDC claims
-        uses: github/actions-oidc-debugger@main
-        with:
-          audience: sts.amazonaws.com
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
