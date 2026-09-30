@@ -68,7 +68,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ACCOUNT_ID=$(/usr/local/bin/aws sts get-caller-identity --query Account --output text)
           API_EXECUTION_ARN="arn:aws:execute-api:${AWS_REGION}:${ACCOUNT_ID}:${API_ID}"
 
           FUNCTIONS=(
@@ -90,32 +90,32 @@ jobs:
             IFS='|' read -r FUNCTION METHOD PATH HANDLER <<< "$item"
             echo "=== $FUNCTION : $METHOD $PATH ==="
 
-            if ! aws lambda get-function                 --function-name "$FUNCTION" >/dev/null 2>&1; then
-              aws lambda create-function                 --function-name "$FUNCTION"                 --runtime java17                 --architectures x86_64                 --role "$EXECUTION_ROLE_ARN"                 --handler "$HANDLER"                 --zip-file fileb:///tmp/csc5100-placeholder.jar                 --timeout 10                 --memory-size 512 >/dev/null
-              aws lambda wait function-active-v2                 --function-name "$FUNCTION"
+            if ! /usr/local/bin/aws lambda get-function                 --function-name "$FUNCTION" >/dev/null 2>&1; then
+              /usr/local/bin/aws lambda create-function                 --function-name "$FUNCTION"                 --runtime java17                 --architectures x86_64                 --role "$EXECUTION_ROLE_ARN"                 --handler "$HANDLER"                 --zip-file fileb:///tmp/csc5100-placeholder.jar                 --timeout 10                 --memory-size 512 >/dev/null
+              /usr/local/bin/aws lambda wait function-active-v2                 --function-name "$FUNCTION"
             else
               echo "Lambda already exists; leaving it in place."
             fi
 
-            FUNCTION_ARN=$(aws lambda get-function               --function-name "$FUNCTION"               --query 'Configuration.FunctionArn'               --output text)
+            FUNCTION_ARN=$(/usr/local/bin/aws lambda get-function               --function-name "$FUNCTION"               --query 'Configuration.FunctionArn'               --output text)
 
-            INTEGRATION_ID=$(aws apigatewayv2 get-integrations               --api-id "$API_ID"               --query "Items[?IntegrationUri=='$FUNCTION_ARN'].IntegrationId | [0]"               --output text)
+            INTEGRATION_ID=$(/usr/local/bin/aws apigatewayv2 get-integrations               --api-id "$API_ID"               --query "Items[?IntegrationUri=='$FUNCTION_ARN'].IntegrationId | [0]"               --output text)
 
             if [[ -z "$INTEGRATION_ID" || "$INTEGRATION_ID" == "None" ]]; then
-              INTEGRATION_ID=$(aws apigatewayv2 create-integration                 --api-id "$API_ID"                 --integration-type AWS_PROXY                 --integration-uri "$FUNCTION_ARN"                 --payload-format-version "2.0"                 --query IntegrationId                 --output text)
+              INTEGRATION_ID=$(/usr/local/bin/aws apigatewayv2 create-integration                 --api-id "$API_ID"                 --integration-type AWS_PROXY                 --integration-uri "$FUNCTION_ARN"                 --payload-format-version "2.0"                 --query IntegrationId                 --output text)
             fi
 
             ROUTE_KEY="$METHOD $PATH"
-            ROUTE_ID=$(aws apigatewayv2 get-routes               --api-id "$API_ID"               --query "Items[?RouteKey=='$ROUTE_KEY'].RouteId | [0]"               --output text)
+            ROUTE_ID=$(/usr/local/bin/aws apigatewayv2 get-routes               --api-id "$API_ID"               --query "Items[?RouteKey=='$ROUTE_KEY'].RouteId | [0]"               --output text)
 
             if [[ -z "$ROUTE_ID" || "$ROUTE_ID" == "None" ]]; then
-              aws apigatewayv2 create-route                 --api-id "$API_ID"                 --route-key "$ROUTE_KEY"                 --target "integrations/$INTEGRATION_ID" >/dev/null
+              /usr/local/bin/aws apigatewayv2 create-route                 --api-id "$API_ID"                 --route-key "$ROUTE_KEY"                 --target "integrations/$INTEGRATION_ID" >/dev/null
             else
               echo "Route already exists; leaving it in place."
             fi
 
             STATEMENT_ID="apigateway-${FUNCTION#csc5100-}"
-            aws lambda add-permission               --function-name "$FUNCTION"               --statement-id "$STATEMENT_ID"               --action lambda:InvokeFunction               --principal apigateway.amazonaws.com               --source-arn "$API_EXECUTION_ARN/*/$METHOD$PATH"               >/dev/null 2>&1 ||               echo "Lambda invoke permission already exists."
+            /usr/local/bin/aws lambda add-permission               --function-name "$FUNCTION"               --statement-id "$STATEMENT_ID"               --action lambda:InvokeFunction               --principal apigateway.amazonaws.com               --source-arn "$API_EXECUTION_ARN/*/$METHOD$PATH"               >/dev/null 2>&1 ||               echo "Lambda invoke permission already exists."
 
             echo "Ready: https://api.javiergs.phd$PATH"
           done
