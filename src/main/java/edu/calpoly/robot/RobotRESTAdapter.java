@@ -33,8 +33,8 @@ public class RobotRESTAdapter extends Thread{
 
     /**
      * Creates a server that can run on a thread.
-     * Listens for requests on the resource "robot/<robotID>""
-     * @param port The port on which the server runs.
+     * Listens for requests on the resource "/robot".
+     * @param RESTport The port on which the server runs.
      * @param robotID The resource object id.
      * @throws IOException from creating the server.
      */
@@ -51,7 +51,7 @@ public class RobotRESTAdapter extends Thread{
         );
 
         // Setup Server.
-        server.createContext("/robot/" + robotID, exchange -> {
+        server.createContext("/robot", exchange -> {
             // Get the http method.
             String method = exchange.getRequestMethod().toUpperCase();
             // Match http method.
@@ -141,7 +141,7 @@ public class RobotRESTAdapter extends Thread{
         server.start();
         InetSocketAddress address = server.getAddress();
         System.out.println("REST server running at " 
-        + "http://" + address.getHostString() + ":" + address.getPort() + "/robot/" + robotID);
+        + "http://" + address.getHostString() + ":" + address.getPort() + "/robot");
     }
 
     /**

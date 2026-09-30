@@ -52,7 +52,7 @@ public class RobotRESTProvider {
      */
     HttpResponse<String> requestPUT(String body) throws IOException, InterruptedException{
         HttpRequest PUTRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:"+port+"/robot/"+robotId))
+            .uri(URI.create("http://localhost:" + port + "/robot"))
             .PUT(BodyPublishers.ofString(body))
             .build();
 
@@ -67,7 +67,7 @@ public class RobotRESTProvider {
      */
     HttpResponse<String> requestGET() throws IOException, InterruptedException{
         HttpRequest GETRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:"+port+"/robot/"+robotId))
+            .uri(URI.create("http://localhost:" + port + "/robot"))
             .GET()
             .build();
 
