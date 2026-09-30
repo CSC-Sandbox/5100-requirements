@@ -1,11 +1,12 @@
 package edu.calpoly.storage;
 
 import edu.calpoly.provided.Broker;
+import org.springframework.stereotype.Component;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 /*
  * This class runs the entire program of storing
@@ -15,21 +16,32 @@ import java.time.Instant;
  * @author Edgard Aviles
  * @version September 25, 2026
  */
-
+@Component
 public class StoreMessages {
-  public static void main(String[] args) {
-    Broker broker = new Broker("localhost", 5000);
-    FileMessageStore store = new FileMessageStore("data/stored-messages.csv");
-    try {
-      while (true) {
-        String message = broker.receive();
-        MessageRecord rec = new MessageRecord(Instant.now().toString(), message);
-        
-        store.store(rec);
-      }
-    } catch (IOException e) {
-      System.out.println("Could not write file.");
-    } catch (IllegalStateException e) {
+    private final FileWriter fileWriter;
+
+    public StoreMessages(FileWriter fileWriter) {
+        this.fileWriter = fileWriter;
     }
-  }
+
+    public static void main(String[] args) {
+        Broker broker = new Broker("localhost", 5000);
+        FileMessageStore store = new FileMessageStore("data/stored-messages.csv");
+        try {
+            while (true) {
+                String message = broker.receive();
+                MessageRecord rec = new MessageRecord(Instant.now().toString(), message);
+
+                store.store(rec);
+            }
+        } catch (IOException e) {
+            System.out.println("Could not write file.");
+        } catch (IllegalStateException e) {
+        }
+    }
+
+    public void storeMessage(String message) throws IOException {
+        var messageRecord = new MessageRecord(LocalDateTime.now().toString(), message);
+        fileWriter.write(messageRecord);
+    }
 }
