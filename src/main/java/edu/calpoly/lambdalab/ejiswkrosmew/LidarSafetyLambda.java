@@ -37,7 +37,7 @@ public class LidarSafetyLambda implements RequestHandler<Map<String, Object>, Ma
             Map<String, Object> response = safetyCheck(distances, threshold);
             return httpResponse(200, mapper.writeValueAsString(response));
         } catch (Exception e) {
-            System.err.println("Invalid Request Received due to: " + e.getMessage());
+            // System.err.println("Invalid Request Received due to: " + e.getMessage());
             return httpResponse(400, "{\"error\":\"Invalid Request\"");
         }
     }
