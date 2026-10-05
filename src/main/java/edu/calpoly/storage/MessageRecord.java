@@ -1,6 +1,8 @@
 package edu.calpoly.storage;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /*
  * This class holds the structure of our messages
  * It is responsible to hold the structure of our messages
@@ -17,7 +19,7 @@ public class MessageRecord {
    * @param timestamp the time upon the message was received
    * @param message the message that was received
    */
-  public MessageRecord (String timestamp, String message) {
+  public MessageRecord (@JsonProperty("timestamp") String timestamp,@JsonProperty("message") String message) {
     this.timestamp = timestamp;
     this.message = message;
   }
