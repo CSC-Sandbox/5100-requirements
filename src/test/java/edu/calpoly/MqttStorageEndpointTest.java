@@ -1,4 +1,4 @@
-package edu.calpoly.mqtt;
+package edu.calpoly.storage;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,13 +30,9 @@ import static org.junit.jupiter.api.Assertions.fail;
  * Integration tests for MqttStorageEndpoint: runs the real endpoint against
  * the shared broker and a temp data file, and exercises it with a separate
  * test MQTT client, the way the Consume side will.
- *
- * NOTE: these tests depend on a live connection to the public broker
- * (broker.hivemq.com) and therefore may be slower/flakier than a pure unit
- * test; that's inherent to testing against a real shared broker rather than
- * a mock.
- *
+ * if you want this test we can delete this, since this was just to test my own version
  * @author Edgard Aviles
+ * @version 1.0.0 october 4, 2026
  */
 class MqttStorageEndpointTest {
 

@@ -1,4 +1,4 @@
-package edu.calpoly.mqtt;
+package edu.calpoly.storage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

@@ -3,6 +3,8 @@ package edu.calpoly.storage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /*
@@ -25,6 +27,20 @@ public class FileMessageReader {
    * @return list of all of the messages in fileName
    */
   public List<String> readAll() throws IOException {
-    return Files.readAllLines(Path.of(fileName));
+    Path path = Path.of(fileName);
+    if (!Files.exists(path)) {
+      return Collections.emptyList();
+    }
+    return Files.readAllLines(path);
+  }
+
+  public List<MessageRecord> readAllRecords() throws IOException {
+    List<MessageRecord> records = new ArrayList<>();
+    for (String line : readAll()) {
+      if (!line.isBlank()) {
+        records.add(MessageRecord.fromFileLine(line));
+      }
+    }
+    return records;
   }
 }

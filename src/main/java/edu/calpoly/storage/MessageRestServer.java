@@ -1,4 +1,4 @@
-package edu.calpoly.rest;
+package edu.calpoly.storage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;

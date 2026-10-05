@@ -41,7 +41,7 @@ public class StoreMessages {
     }
 
     public void storeMessage(String message) throws IOException {
-        var messageRecord = new MessageRecord(LocalDateTime.now().toString(), message);
+        MessageRecord messageRecord = new MessageRecord(LocalDateTime.now().toString(), message);
         fileWriter.write(messageRecord);
     }
 }

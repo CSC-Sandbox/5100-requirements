@@ -1,4 +1,4 @@
-package edu.calpoly.rest;
+package edu.calpoly.storage;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Integration tests for MessageRestServer: runs the real server on a port
  * against a temp data file and exercises it with real HTTP calls.
  *
+ * if you want this test we can delete this, since this was just to test my own version
+ *
  * @author Edgard Aviles
+ * @version 1.0.0 october 4, 2026
  */
 class MessageRestServerTest {
 

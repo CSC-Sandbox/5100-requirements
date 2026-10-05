@@ -5,8 +5,7 @@ package edu.calpoly.storage;
  * POST /messages body and the MQTT store-topic payload:
  *   {"message": "..."}
  *
- * Mirrors how Temperature.java is used directly as a JSON wire type in the
- * course-provided example - no separate JSON-building utility needed.
+ * Mirrors how Temperature.java is used directly as a JSON.
  *
  * @author Edgard Aviles
  */
