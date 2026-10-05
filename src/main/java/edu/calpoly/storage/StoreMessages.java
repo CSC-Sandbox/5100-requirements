@@ -26,7 +26,7 @@ public class StoreMessages {
 
     public static void main(String[] args) {
         Broker broker = new Broker("localhost", 5000);
-        FileMessageStore store = new FileMessageStore("data/stored-messages.csv");
+        FileMessageStore store = new FileMessageStore("data/messages.csv");
         try {
             while (true) {
                 String message = broker.receive();
@@ -40,6 +40,10 @@ public class StoreMessages {
         }
     }
 
+    /*
+     * @param message the message content to store
+     * @throws IOException if the message could not be written
+     */
     public void storeMessage(String message) throws IOException {
         MessageRecord messageRecord = new MessageRecord(LocalDateTime.now().toString(), message);
         fileWriter.write(messageRecord);

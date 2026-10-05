@@ -20,16 +20,11 @@ import java.util.List;
  * behavior to the REST interface. Since MQTT has no native request/response,
  * retrieval uses a request topic and a separate response topic.
  *
- * Uses per-topic listeners (matching TemperatureMqttConsumer's style) rather
- * than a class-wide MqttCallback.
- *
  * IMPORTANT: this connects to the same shared public broker as the
- * Temperature example (broker.hivemq.com) - topic names here MUST stay under
- * the team-agreed csc5100/storage/ prefix to avoid colliding with other
- * teams/sections on that broker. Confirm exact topic names with the Consume
- * story owner; these are a working default.
+ * Temperature example (broker.hivemq.com) - topic should stay to the agreed csc5100/storage/
  *
  * @author Edgard Aviles
+ * @version 1.0.0 October 4, 2026
  */
 public class MqttStorageEndpoint {
 
@@ -81,7 +76,6 @@ public class MqttStorageEndpoint {
 
             service.storeMessage(request.message());
         } catch (Exception e) {
-            // Never let one bad message kill the subscriber.
             System.out.println("Invalid MQTT store payload: " + e.getMessage());
         }
     }
@@ -106,8 +100,8 @@ public class MqttStorageEndpoint {
     }
 
     public static void main(String[] args) throws Exception {
-        FileMessageStore store = new FileMessageStore("data/stored-messages.csv");
-        FileMessageReader reader = new FileMessageReader("data/stored-messages.csv");
+        FileMessageStore store = new FileMessageStore("data/messages.csv");
+        FileMessageReader reader = new FileMessageReader("data/messages.csv");
         MqttStorageEndpoint endpoint = new MqttStorageEndpoint(new MessageService(store, reader));
         endpoint.start();
         System.out.println("Waiting for storage requests. Press Ctrl+C to stop.");

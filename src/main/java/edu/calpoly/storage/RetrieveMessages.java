@@ -43,7 +43,6 @@ public class RetrieveMessages {
   }
 
   /**
-   * This function does what you think it does.
    * @return All lines read of opened {@link FileMessageReader} file.
    * @throws IOException
    */

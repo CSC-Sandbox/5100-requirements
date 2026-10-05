@@ -20,13 +20,8 @@ import java.nio.charset.StandardCharsets;
  *   GET  /messages  - retrieve all stored messages as a JSON array.
  *
  * Delegates all domain logic to MessageService (the same class the MQTT
- * interface uses) - mirrors the structure of the course-provided
- * TemperatureRestServer.
+ * interface uses) - mirrors the structure of the provided TemperatureRestServer.
  *
- * NOTE: MessageValidator currently comes from edu.calpoly.message. There is
- * an apparently-duplicate edu.calpoly.provided.MessageValidator with
- * identical logic - confirm with the team which one is canonical before
- * this ships.
  *
  * @author Edgard Aviles
  */
