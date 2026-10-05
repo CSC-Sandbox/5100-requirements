@@ -2,7 +2,6 @@ package edu.calpoly.storage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +19,7 @@ public class RetrieveMessagesRestController {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final FileMessageReader fileReader;
 
-    public RetrieveMessagesRestController(String fileName) throws IOException {
+    public RetrieveMessagesRestController(String fileName) {
         this.fileReader = new FileMessageReader(fileName);
     }
 
@@ -51,7 +50,7 @@ public class RetrieveMessagesRestController {
                 return new MessageRecord(split[0], split[1]);
             });
 
-            byte[] responseBody = OBJECT_MAPPER.writeValueAsBytes(records);
+            byte[] responseBody = OBJECT_MAPPER.writeValueAsBytes(recordsStream);
             exchange.sendResponseHeaders(200, responseBody.length);
             try (var os = exchange.getResponseBody()) {
                 os.write(responseBody);
