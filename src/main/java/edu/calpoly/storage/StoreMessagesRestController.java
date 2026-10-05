@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
-import javax.print.DocFlavor;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -16,22 +15,19 @@ public class StoreMessagesRestController {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final FileMessageStore fileStore;
-    private final HttpServer server;
 
-    public StoreMessagesRestController(String fileName) throws IOException {
-        server = HttpServer.create(new InetSocketAddress("localhost", 5637), 50);
-        server.createContext("/messages", this::storeMessage);
+    public StoreMessagesRestController(String fileName)   {
         fileStore = new FileMessageStore(fileName);
     }
 
     public static void main(String[] args) throws IOException {
-        var messageController = new StoreMessagesRestController("data/store-input.txt");
-
-        messageController.start();
-
+        var server = HttpServer.create(new InetSocketAddress("localhost", 5637), 50);
+        var storeMessagesRestController = new StoreMessagesRestController("data/store-input.txt");
+        server.createContext("/messages", storeMessagesRestController::storeMessage);
+        server.start();
     }
 
-    private void storeMessage(HttpExchange exchange) throws IOException {
+    public void storeMessage(HttpExchange exchange) throws IOException {
         try (exchange) {
 
             if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -41,7 +37,7 @@ public class StoreMessagesRestController {
 
             MessageRecord messageRecord;
 
-            try (var inputStream = exchange.getRequestBody();) {
+            try (var inputStream = exchange.getRequestBody()) {
                 messageRecord = OBJECT_MAPPER.readValue(inputStream, MessageRecord.class);
             } catch (JsonProcessingException e) {
                 byte[] errorBytes = "Invalid JSON payload".getBytes(StandardCharsets.UTF_8);
@@ -57,14 +53,11 @@ public class StoreMessagesRestController {
             var response = "Content Created".getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(200, response.length);
 
-            try (var os = exchange.getResponseBody();) {
+            try (var os = exchange.getResponseBody()) {
                 os.write(response);
             }
         }
     }
 
-    public void start() {
-        System.out.println("Start server on:" + server.getAddress());
-        server.start();
-    }
+
 }
