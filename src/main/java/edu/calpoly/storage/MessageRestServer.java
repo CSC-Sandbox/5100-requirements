@@ -11,17 +11,17 @@ import edu.calpoly.storage.MessageService;
 import edu.calpoly.storage.StoreMessageRequest;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
 /**
  * Minimal REST interface over MessageService:
- *   POST /messages  - store a message. Body: {"message": "..."}
- *   GET  /messages  - retrieve all stored messages as a JSON array.
- *
+ * POST /messages  - store a message. Body: {"message": "..."}
+ * GET  /messages  - retrieve all stored messages as a JSON array.
+ * <p>
  * Delegates all domain logic to MessageService (the same class the MQTT
  * interface uses) - mirrors the structure of the provided TemperatureRestServer.
- *
  *
  * @author Edgard Aviles
  */
@@ -38,6 +38,16 @@ public class MessageRestServer {
         server.createContext("/messages", this::handleMessages);
     }
 
+    private static String escapeJson(String s) {
+        return s == null ? "" : s.replace("\"", "'");
+    }
+
+    public static void main(String[] args) throws IOException {
+        FileMessageStore store = new FileMessageStore("data/stored-messages.csv");
+        FileMessageReader reader = new FileMessageReader("data/stored-messages.csv");
+        new MessageRestServer(new MessageService(store, reader), 8080).start();
+    }
+
     public void start() {
         server.start();
         System.out.println("REST provider: http://localhost:" + server.getAddress().getPort() + "/messages");
@@ -48,53 +58,30 @@ public class MessageRestServer {
     }
 
     private void handleMessages(HttpExchange exchange) throws IOException {
-        try {
+        try (exchange) {
             switch (exchange.getRequestMethod()) {
-                case "GET" -> sendJson(exchange, 200, mapper.writeValueAsString(service.retrieveMessages()));
-                case "POST" -> handlePost(exchange);
+                case "GET" -> {
+                    RetrieveMessagesRestController.retrieveMessages(exchange, mapper, service.getReader());
+                }
+                case "POST" -> {
+                    StoreMessagesRestController.storeMessage(exchange, mapper, service.getStore());
+                }
                 default -> {
                     exchange.getResponseHeaders().set("Allow", "GET, POST");
-                    sendJson(exchange, 405, "{\"error\":\"Method not allowed\"}");
+                    exchange.sendResponseHeaders(405, -1);
                 }
             }
         } catch (IllegalArgumentException e) {
-            sendJson(exchange, 400, "{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
+            var errorResponse = ("{\"error\":\"" + escapeJson(e.getMessage()) + "\"}").getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(400, errorResponse.length);
+            exchange.getResponseBody().write(errorResponse);
         } catch (Exception e) {
-            sendJson(exchange, 400, "{\"error\":\"Invalid JSON\"}");
+            var errorResponse = "{\"error\":\"Invalid JSON\"}".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(400, errorResponse.length);
+
+            var os = exchange.getResponseBody();
+            os.write(errorResponse);
         }
     }
 
-    private void handlePost(HttpExchange exchange) throws IOException {
-        StoreMessageRequest request = mapper.readValue(exchange.getRequestBody(), StoreMessageRequest.class);
-
-        if (request.message() == null) {
-            sendJson(exchange, 400, "{\"error\":\"'message' field is required\"}");
-            return;
-        }
-        if (!validator.validate(request.message())) {
-            sendJson(exchange, 400, "{\"error\":\"" + escapeJson(validator.getLastError()) + "\"}");
-            return;
-        }
-
-        service.storeMessage(request.message());
-        sendJson(exchange, 201, "{\"status\":\"stored\"}");
-    }
-
-    private void sendJson(HttpExchange exchange, int status, String body) throws IOException {
-        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(status, bytes.length);
-        exchange.getResponseBody().write(bytes);
-        exchange.close();
-    }
-
-    private static String escapeJson(String s) {
-        return s == null ? "" : s.replace("\"", "'");
-    }
-
-    public static void main(String[] args) throws IOException {
-        FileMessageStore store = new FileMessageStore("data/stored-messages.csv");
-        FileMessageReader reader = new FileMessageReader("data/stored-messages.csv");
-        new MessageRestServer(new MessageService(store, reader), 8080).start();
-    }
 }

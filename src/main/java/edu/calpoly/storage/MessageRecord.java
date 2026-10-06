@@ -1,5 +1,7 @@
 package edu.calpoly.storage;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 /*
@@ -14,7 +16,7 @@ public class MessageRecord {
   private final String timestamp;
   private final String message;
 
-  public MessageRecord(String timestamp, String message) {
+  public MessageRecord(@JsonProperty("timestamp") String timestamp,@JsonProperty("message") String message) {
     this.timestamp = timestamp;
     this.message = message;
   }
