@@ -16,14 +16,7 @@ import java.util.List;
  */
 public class RetrieveMessagesRestController {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private final FileMessageReader fileReader;
-
-    public RetrieveMessagesRestController(String fileName) {
-        this.fileReader = new FileMessageReader(fileName);
-    }
-
-    private void retrieveMessages(HttpExchange exchange) throws IOException {
+    public static void retrieveMessages(HttpExchange exchange, ObjectMapper mapper, FileMessageReader fileReader) throws IOException {
         try (exchange) {
             if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
                 exchange.sendResponseHeaders(405, -1);
@@ -37,6 +30,7 @@ public class RetrieveMessagesRestController {
             } catch (IOException e) {
                 var response = "Error retrieving Messages".getBytes(StandardCharsets.UTF_8);
                 exchange.sendResponseHeaders(500, response.length);
+
                 try (var os = exchange.getResponseBody()) {
                     os.write(response);
                 }
@@ -48,9 +42,10 @@ public class RetrieveMessagesRestController {
                 String[] split = i.split(",");
                 assert (split.length == 2) : "Incorrectly formatted file";
                 return new MessageRecord(split[0], split[1]);
-            });
+            }).toList();
 
-            byte[] responseBody = OBJECT_MAPPER.writeValueAsBytes(recordsStream);
+            byte[] responseBody = mapper.writeValueAsBytes(recordsStream);
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
             exchange.sendResponseHeaders(200, responseBody.length);
             try (var os = exchange.getResponseBody()) {
                 os.write(responseBody);

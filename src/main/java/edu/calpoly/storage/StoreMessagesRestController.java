@@ -9,25 +9,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 
 public class StoreMessagesRestController {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private final FileMessageStore fileStore;
 
-    public StoreMessagesRestController(String fileName)   {
-        fileStore = new FileMessageStore(fileName);
-    }
-
-    public static void main(String[] args) throws IOException {
-        var server = HttpServer.create(new InetSocketAddress("localhost", 5637), 50);
-        var storeMessagesRestController = new StoreMessagesRestController("data/store-input.txt");
-        server.createContext("/messages", storeMessagesRestController::storeMessage);
-        server.start();
-    }
-
-    public void storeMessage(HttpExchange exchange) throws IOException {
+    public static void storeMessage(HttpExchange exchange, ObjectMapper mapper, FileMessageStore fileStore) throws IOException {
         try (exchange) {
 
             if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -35,10 +23,10 @@ public class StoreMessagesRestController {
                 return;
             }
 
-            MessageRecord messageRecord;
+            StoreMessageRequest messageRecord;
 
             try (var inputStream = exchange.getRequestBody()) {
-                messageRecord = OBJECT_MAPPER.readValue(inputStream, MessageRecord.class);
+                messageRecord = mapper.readValue(inputStream, StoreMessageRequest.class);
             } catch (JsonProcessingException e) {
                 byte[] errorBytes = "Invalid JSON payload".getBytes(StandardCharsets.UTF_8);
                 exchange.sendResponseHeaders(400, errorBytes.length);
@@ -48,7 +36,7 @@ public class StoreMessagesRestController {
                 return;
             }
 
-            fileStore.store(messageRecord);
+            fileStore.store(new MessageRecord(LocalDateTime.now().toString(), messageRecord.message()));
 
             var response = "Content Created".getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(200, response.length);
