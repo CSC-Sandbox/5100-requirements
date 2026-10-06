@@ -1,44 +1,27 @@
 package edu.calpoly.storage;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.calpoly.message.MessageValidator;
 import org.eclipse.paho.client.mqttv3.*;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
-public class RetrieveMessagesMQTTSubscriber implements MqttCallback {
-    private static final String broker = "tcp://test.messages.org:5873";
-    private static final String topic = "csc5100/messages";
-    private static final String clientId = "message-retriever";
+public class RetrieveMessagesMQTTSubscriber {
 
-    @Override
-    public void connectionLost(Throwable cause) {
-        System.out.println("Connection Lost");
-    }
 
-    public static void main(String[] args) {
+    public static void handleStore(MessageService service, ObjectMapper mapper, MessageValidator validator, MqttMessage message) {
         try {
-            var client = new MqttClient(broker, clientId);
-            client.setCallback(new RetrieveMessagesMQTTSubscriber());
-            client.connect();
+            var mqttMessage = new String(message.getPayload(), StandardCharsets.UTF_8);
+            if (!validator.validate(mqttMessage)) {
+                System.err.println("Rejected invalid message: " + validator.getLastError());
+                return;
+            }
 
-            System.out.println("Client connected");
-            client.subscribe(topic);
-
-            System.out.println("Subscribed to topic" + topic);
-        } catch (MqttException e) {
-            throw new RuntimeException(e);
+            service.storeMessage(mqttMessage);
+        } catch (Exception e) {
+            System.err.println("Invalid MQTT store payload: " + e.getMessage());
         }
-    }
-    @Override
-    public void messageArrived(String topic, MqttMessage message) throws Exception {
-        var payload = Arrays.toString(message.getPayload());
-        var timestamp = LocalDateTime.now().toString();
-
-        System.out.println(timestamp + "," + payload);
-    }
-
-    @Override
-    public void deliveryComplete(IMqttDeliveryToken token) {
-        System.out.println("Received a Message");
     }
 }

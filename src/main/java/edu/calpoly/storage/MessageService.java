@@ -14,30 +14,37 @@ import java.util.List;
  */
 
 public class MessageService {
-  private final FileMessageStore store;
-  private final FileMessageReader reader;
+    private final FileMessageStore store;
+    private final FileMessageReader reader;
 
 
-  public MessageService(FileMessageStore store, FileMessageReader reader) {
-    this.store = store;
-    this.reader = reader;
-  }
+    public MessageService(FileMessageStore store, FileMessageReader reader) {
+        this.store = store;
+        this.reader = reader;
+    }
 
-  /*
-   * @param rawMessage the message content to store
-   * @throws IOException if the message could not be written
-   */
-  public void storeMessage(String rawMessage) throws IOException {
-    MessageRecord record = new MessageRecord(Instant.now().toString(), rawMessage);
-    store.store(record);
-  }
+    /*
+     * @param rawMessage the message content to store
+     * @throws IOException if the message could not be written
+     */
+    public void storeMessage(String rawMessage) throws IOException {
+        MessageRecord record = new MessageRecord(Instant.now().toString(), rawMessage);
+        store.store(record);
+    }
 
-  /*
-   * @return the list of stored MessageRecords (empty if none)
-   * @throws IOException if the stored file could not be read
-   */
-  public List<MessageRecord> retrieveMessages() throws IOException {
-    return reader.readAllRecords();
-  }
+    /*
+     * @return the list of stored MessageRecords (empty if none)
+     * @throws IOException if the stored file could not be read
+     */
+    public List<MessageRecord> retrieveMessages() throws IOException {
+        return reader.readAllRecords();
+    }
 
+    public FileMessageReader getReader() {
+        return reader;
+    }
+
+    public FileMessageStore getStore() {
+        return store;
+    }
 }
