@@ -1,4 +1,6 @@
-# CSC 5100 — Software Engineering
+<img width="1536" height="404" alt="CSC_5100_banner" src="https://github.com/user-attachments/assets/60356cf4-d5df-470b-be2b-44597bec95af" />
+
+Shared repository for ** CSC 5100: Software Engineering **.
 
 This repository contains the shared software project for CSC 5100, including course-provided infrastructure, student implementations, data, tests, and design documentation.
 
