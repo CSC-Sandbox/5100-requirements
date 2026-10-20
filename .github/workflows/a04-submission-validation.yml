@@ -1,0 +1,75 @@
+name: A04 Submission Validation
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write
+
+jobs:
+  validate-a04:
+    name: A04 Submission Validation
+    if: startsWith(github.event.pull_request.title, 'A04 - ')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify seven completed Story sub-issues
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const marker = '<!-- a04-submission-validation -->';
+            const match = (pr.body || '').match(/^A04 Story:\s*#(\d+)\s*$/mi);
+            const problems = [];
+            let tasks = [];
+            let storyNumber = null;
+            if (!match) {
+              problems.push('Add a line to the PR description: `A04 Story: #123` (replace 123 with your assigned Story issue number).');
+            } else {
+              storyNumber = Number(match[1]);
+              try {
+                const story = await github.rest.issues.get({ ...context.repo, issue_number: storyNumber });
+                if (!story.data.title.startsWith('[A04]')) {
+                  problems.push(`Issue #${storyNumber} is not titled as an A04 Story.`);
+                }
+                // GitHub native sub-issues, not a checklist in the issue body.
+                const response = await github.paginate('GET /repos/{owner}/{repo}/issues/{issue_number}/sub_issues', {
+                  ...context.repo, issue_number: storyNumber, per_page: 100
+                });
+                tasks = response;
+                if (tasks.length !== 7) {
+                  problems.push(`Story #${storyNumber} has ${tasks.length} sub-issues; exactly 7 are required.`);
+                }
+                const unfinished = tasks.filter(task => task.state !== 'closed');
+                if (unfinished.length) {
+                  problems.push('Tasks not Done (open sub-issues): ' +
+                    unfinished.map(task => `#${task.number} ${task.title}`).join(', '));
+                }
+              } catch (error) {
+                problems.push(`Unable to verify Story #${storyNumber}: ${error.message}`);
+              }
+            }
+            if (problems.length) {
+              const body = marker + '\n**A04 submission is not ready for instructor review.**\n\n' +
+                problems.map(problem => '- ' + problem).join('\n') +
+                '\n\nComplete and close all seven native sub-issue Tasks before submitting your A04 PR. ' +
+                'Then mark the PR **Ready for review**. (For A04, closing a Task is the verifiable Done state.)';
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                ...context.repo, issue_number: pr.number, per_page: 100
+              });
+              const prior = comments.find(comment => comment.user?.type === 'Bot' && comment.body?.includes(marker));
+              if (prior) {
+                await github.rest.issues.updateComment({ ...context.repo, comment_id: prior.id, body });
+              } else {
+                await github.rest.issues.createComment({ ...context.repo, issue_number: pr.number, body });
+              }
+              if (!pr.draft) {
+                await github.rest.pulls.convertToDraft({ ...context.repo, pull_number: pr.number });
+              }
+              core.setFailed(problems.join(' | '));
+            } else {
+              core.info(`A04 Story #${storyNumber}: all seven sub-issues are closed. Submission is eligible for instructor review.`);
+            }
