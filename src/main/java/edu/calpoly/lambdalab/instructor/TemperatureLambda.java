@@ -40,11 +40,13 @@ public class TemperatureLambda implements RequestHandler<Map<String, Object>, Ma
       if (event == null) {
         return httpResponse(400, "{\"error\":\"Invalid request\"}");
       }
+      Map<String, Object> requestContext = event.get("requestContext") instanceof Map
+          ? (Map<String, Object>) event.get("requestContext") : Map.of();
+      Map<String, Object> http = requestContext.get("http") instanceof Map
+          ? (Map<String, Object>) requestContext.get("http") : Map.of();
       String method = String.valueOf(event.getOrDefault("httpMethod",
-          ((Map<String, Object>) event.getOrDefault("requestContext", Map.of()))
-              .containsKey("http") ? ((Map<String, Object>)
-                  ((Map<String, Object>) event.get("requestContext")).get("http"))
-                  .getOrDefault("method", "POST") : "POST")).toUpperCase();
+          http.getOrDefault("method",
+              event.get("queryStringParameters") != null ? "GET" : "POST"))).toUpperCase();
 
       Map<String, Object> query = event.get("queryStringParameters") instanceof Map
           ? (Map<String, Object>) event.get("queryStringParameters") : Map.of();
