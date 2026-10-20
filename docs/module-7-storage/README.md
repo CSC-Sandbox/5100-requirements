@@ -56,7 +56,7 @@ This feature retrieves previously stored message records and sends each record t
 
 The implementation uses three classes:
 
-- `FileMessageReader` reads all records from `data/messages.csv`.
+- `FileMessageReader` reads all records from `src/main/resources/storage/messages.csv`.
 - `RetrieveMessages` retrieves those records and sends each one through `Broker`.
 - `MessageService.retrieveMessages()` is the shared entry point REST/MQTT use instead of calling `FileMessageReader` directly.
 
