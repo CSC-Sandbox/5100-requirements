@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
  * Run this file directly to start the test server
  *
  * @author James Yaguma
- * @version 1.0 (2026-09-30)
+ * @version 1.1 (2026-10-20)
  */
 public class TestGazeRestClient {
     private static final String URL = "http://localhost:8080/gaze";

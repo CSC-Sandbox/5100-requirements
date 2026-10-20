@@ -7,7 +7,7 @@ import java.awt.*;
  * Creates the UI components to display info about the current gaze position and connection status
  *
  * @author James Yaguma
- * @version 1.0 (2026-09-25)
+ * @version 1.1 (2026-10-20)
  */
 public class GazeInfo extends JPanel{
 

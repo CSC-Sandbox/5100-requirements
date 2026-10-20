@@ -8,7 +8,7 @@ import java.util.Locale;
  * Also initializes the GUI frame
  *
  * @author James Yaguma
- * @version 1.1 (2026-09-29)
+ * @version 1.2 (2026-10-20)
  */
 public class DisplayEye {
     private final int width = 800;
