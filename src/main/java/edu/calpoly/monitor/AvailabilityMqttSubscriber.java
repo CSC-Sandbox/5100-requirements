@@ -32,6 +32,15 @@ public class AvailabilityMqttSubscriber {
     }
 
     /**
+     * Small method used to check if the JSON is formatted correctly.
+     * @param availability  The value that is intended to display the availability of a monitor
+     * @return  Whether the JSON follows the expected format for this specific monitor
+     */
+    private boolean checkAvailabilityFormat(String availability) {
+        return (("AVAILABLE".equals(availability)) || "UNAVAILABLE".equals(availability));
+    }
+
+    /**
      *
      * @param json The JSON retrieved from the MQTT provider
      * @return A map of each Data Source and their availability (as a boolean)
@@ -47,20 +56,30 @@ public class AvailabilityMqttSubscriber {
         Map<DataSource, Boolean> availability =
                 new EnumMap<>(DataSource.class);
 
-        availability.put(
-                DataSource.ROBOT,
-                "AVAILABLE".equals(values.get("robot")));
-        availability.put(
-                DataSource.GAZE,
-                "AVAILABLE".equals(values.get("gaze")));
-        availability.put(
-                DataSource.AFFECT,
-                "AVAILABLE".equals(values.get("affect")));
-        availability.put(
-                DataSource.LIDAR,
-                "AVAILABLE".equals(values.get("lidar")));
+        // Checking if the JSON is formatted properly
+        if (checkAvailabilityFormat(values.get("robot")) && checkAvailabilityFormat(values.get("gaze")) && checkAvailabilityFormat(values.get("affect")) && checkAvailabilityFormat(values.get("lidar"))) {
+            availability.put(
+                    DataSource.ROBOT,
+                    "AVAILABLE".equals(values.get("robot"))
+            );
+            availability.put(
+                    DataSource.GAZE,
+                    "AVAILABLE".equals(values.get("gaze"))
+            );
+            availability.put(
+                    DataSource.AFFECT,
+                    "AVAILABLE".equals(values.get("affect"))
+            );
+            availability.put(
+                    DataSource.LIDAR,
+                    "AVAILABLE".equals(values.get("lidar"))
+            );
 
-        return availability;
+            return availability;
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -99,11 +118,17 @@ public class AvailabilityMqttSubscriber {
     public static void main(String[] args) throws Exception {
         // Small loop to output messages from the MQTT publisher (Demonstration purposes)
         AvailabilityMqttSubscriber subscriber = new AvailabilityMqttSubscriber(snapshot -> {
-            System.out.println("Availability:");
-            for (DataSource source: DataSource.values()) {
-                System.out.println(
-                        source + ": " + (snapshot.get(source) ? "AVAILABLE" : "UNAVAILABLE")
-                );
+            if (snapshot == null) {
+                System.out.println("ERROR: The received JSON did not follow the format requested.");
+            }
+            else {
+                System.out.println("Availability:");
+                for (DataSource source : DataSource.values()) {
+                    System.out.println(
+                            source.displayName() + ": "
+                                    + (snapshot.get(source)
+                                    ? "AVAILABLE" : "UNAVAILABLE"));
+                }
             }
         });
 

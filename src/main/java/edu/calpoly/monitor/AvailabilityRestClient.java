@@ -45,7 +45,16 @@ public class AvailabilityRestClient {
     }
 
     /**
-     *
+     * Small method used to check if the JSON is formatted correctly.
+     * @param availability  The value that is intended to display the availability of a monitor
+     * @return  Whether the JSON follows the expected format for this specific monitor
+     */
+    private boolean checkAvailabilityFormat(String availability) {
+        return (("AVAILABLE".equals(availability)) || "UNAVAILABLE".equals(availability));
+    }
+
+    /**
+     * Method used to parse the availability and update the DataSource.
      * @param json The JSON retrieved from the REST API server
      * @return A map of each Data Source and their availability (as a boolean)
      * @throws Exception If the response doesn't have anything
@@ -59,27 +68,30 @@ public class AvailabilityRestClient {
 
         Map<DataSource, Boolean> availability =  new EnumMap<>(DataSource.class);
 
-        availability.put(
-                DataSource.ROBOT,
-                "AVAILABILITY".equals(values.get("robot"))
-        );
+        // Checking if the JSON is formatted properly
+        if (checkAvailabilityFormat(values.get("robot")) && checkAvailabilityFormat(values.get("gaze")) && checkAvailabilityFormat(values.get("affect")) && checkAvailabilityFormat(values.get("lidar"))) {
+            availability.put(
+                    DataSource.ROBOT,
+                    "AVAILABLE".equals(values.get("robot"))
+            );
+            availability.put(
+                    DataSource.GAZE,
+                    "AVAILABLE".equals(values.get("gaze"))
+            );
+            availability.put(
+                    DataSource.AFFECT,
+                    "AVAILABLE".equals(values.get("affect"))
+            );
+            availability.put(
+                    DataSource.LIDAR,
+                    "AVAILABLE".equals(values.get("lidar"))
+            );
 
-        availability.put(
-                DataSource.GAZE,
-                "AVAILABILITY".equals(values.get("gaze"))
-        );
-
-        availability.put(
-                DataSource.AFFECT,
-                "AVAILABILITY".equals(values.get("affect"))
-        );
-
-        availability.put(
-                DataSource.LIDAR,
-                "AVAILABILITY".equals(values.get("lidar"))
-        );
-
-        return availability;
+            return availability;
+        }
+        else {
+            return null;
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -91,12 +103,17 @@ public class AvailabilityRestClient {
                 Map<DataSource, Boolean> availability =
                         client.getAvailability();
 
-                System.out.println("Availability:");
-                for (DataSource source : DataSource.values()) {
-                    System.out.println(
-                            source.displayName() + ": "
-                                    + (availability.get(source)
-                            ? "AVAILABLE" : "UNAVAILABLE"));
+                if (availability == null) {
+                    System.out.println("ERROR: The received JSON did not follow the format requested.");
+                }
+                else {
+                    System.out.println("Availability:");
+                    for (DataSource source : DataSource.values()) {
+                        System.out.println(
+                                source.displayName() + ": "
+                                        + (availability.get(source)
+                                        ? "AVAILABLE" : "UNAVAILABLE"));
+                    }
                 }
 
                 Thread.sleep(500);
