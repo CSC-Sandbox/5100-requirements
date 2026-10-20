@@ -80,6 +80,9 @@ Example error body:
 }
 ```
 
+REST Client behavior: The client sends a GET request to `/availability`, retrieves the response (if valid), and parses the JSON.<br>
+For demonstration purposes, the running program for the REST API Client will periodically send GET requests and outputs the response.
+
 ## MQTT Contract
 
 Broker:
@@ -108,6 +111,11 @@ Example:
   "lidar": "AVAILABLE"
 }
 ```
+
+Subscriber behavior:
+
+The subscriber receives a complete availability snapshot from the provider whenever the provider sends the snapshot. This occurs when the availability state changes. <br>
+For demonstration purposes, the subscriber will output the availability snapshot to the console.
 
 Publishing behavior:
 
