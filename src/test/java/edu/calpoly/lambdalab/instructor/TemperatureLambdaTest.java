@@ -91,4 +91,33 @@ class TemperatureLambdaTest {
             "c5f1b1b7-ccf5-4b98-80f9-f1123589a123")), null).get("statusCode"));
   }
 
+  @Test
+  void postSendsSameCorrelatedPayloadToIndependentMessagingChannels() {
+    class FakeStorage implements TemperatureLambda.Storage {
+      public void save(String id, String json) { }
+      public String get(String id) { return null; }
+    }
+    java.util.List<String> messages = new java.util.ArrayList<>();
+    TemperatureLambda lambda = new TemperatureLambda(new FakeStorage(), messages::add);
+    String id = "c5f1b1b7-ccf5-4b98-80f9-f1123589a123";
+    Map<String, Object> response = lambda.handleRequest(Map.of(
+        "httpMethod", "POST", "body",
+        "{\"id\":\"" + id + "\",\"value\":32,\"from\":\"F\",\"to\":\"C\"}"), null);
+    assertEquals(200, response.get("statusCode"));
+    assertEquals(1, messages.size());
+    assertTrue(messages.get(0).contains(id));
+    assertTrue(response.get("body").toString().contains("\"sns\":\"published\""));
+    assertTrue(response.get("body").toString().contains("\"sqs\":\"queued\""));
+  }
+
+  @Test
+  void legacyGetDoesNotPublishMessages() {
+    java.util.List<String> messages = new java.util.ArrayList<>();
+    TemperatureLambda lambda = new TemperatureLambda(null, messages::add);
+    Map<String, Object> response = lambda.handleRequest(Map.of("httpMethod", "GET",
+        "queryStringParameters", Map.of("value", "32", "from", "F", "to", "C")), null);
+    assertEquals(200, response.get("statusCode"));
+    assertTrue(messages.isEmpty());
+  }
+
 }
