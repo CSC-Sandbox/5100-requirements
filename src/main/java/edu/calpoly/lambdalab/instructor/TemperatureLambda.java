@@ -19,18 +19,31 @@ public class TemperatureLambda implements RequestHandler<Map<String, Object>, Ma
 
   private final ObjectMapper mapper = new ObjectMapper();
   private final Storage storage;
+  private final Messaging messaging;
 
-  public TemperatureLambda() {
-    this(System.getenv("A04_DYNAMODB_TABLE"), System.getenv("A04_S3_BUCKET"));
+  interface Messaging {
+    void publish(String json);
   }
 
-  private TemperatureLambda(String table, String bucket) {
+  public TemperatureLambda() {
+    this(System.getenv("A04_DYNAMODB_TABLE"), System.getenv("A04_S3_BUCKET"),
+        System.getenv("A04_SNS_TOPIC_ARN"), System.getenv("A04_SQS_QUEUE_URL"));
+  }
+
+  private TemperatureLambda(String table, String bucket, String topicArn, String queueUrl) {
     this(table != null && !table.isBlank() && bucket != null && !bucket.isBlank()
-        ? new TemperatureStorage(table, bucket) : null);
+            ? new TemperatureStorage(table, bucket) : null,
+        topicArn != null && !topicArn.isBlank() && queueUrl != null && !queueUrl.isBlank()
+            ? new TemperatureMessaging(topicArn, queueUrl) : null);
   }
 
   TemperatureLambda(Storage storage) {
+    this(storage, null);
+  }
+
+  TemperatureLambda(Storage storage, Messaging messaging) {
     this.storage = storage;
+    this.messaging = messaging;
   }
 
   @Override
@@ -85,6 +98,13 @@ public class TemperatureLambda implements RequestHandler<Map<String, Object>, Ma
           output.put("storage", Map.of("dynamodb", "stored", "s3", "stored"));
         } else {
           output.put("storage", Map.of("dynamodb", "not_configured", "s3", "not_configured"));
+        }
+        if (messaging != null) {
+          // Both services receive the same result and correlation UUID independently.
+          messaging.publish(mapper.writeValueAsString(output));
+          output.put("messaging", Map.of("sns", "published", "sqs", "queued"));
+        } else {
+          output.put("messaging", Map.of("sns", "not_configured", "sqs", "not_configured"));
         }
       }
       return httpResponse(200, mapper.writeValueAsString(output));
