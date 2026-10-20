@@ -46,7 +46,7 @@ A REST client that performs `GET` requests to the specified URL upon initializat
 4. If invalid messages want to be tested, go to `TestDisplayEye.java`, comment out `sendSnake(out)`, and uncomment `sendInvalidTests(out)`
 5. Repeat from step 1
 
-### Testing MQTT
+### Basic MQTT Testing
 
 1. Set `interfaceMode` to `'m'` in `DisplayEye.java` (Alternatively, call `DisplayEye` with the `m` argument later)
 2. Run `DisplayEye.java`
@@ -54,9 +54,17 @@ A REST client that performs `GET` requests to the specified URL upon initializat
 4. Watch the output in logs to see which messages were accepted and which messages were deemed invalid
 
 
-### Testing REST
+### Basic REST Testing
 
 1. Set `interfaceMode` to `'r'` in `DisplayEye.java` (Alternatively, call `DisplayEye` with the `r` argument later)
 2. Run `TestGazeRestClient.java` **first**
 3. Run `DisplayEye.java`
 4. Watch the output in logs to see which messages were accepted and which messages were deemed invalid
+
+### Live MQTT/REST Testing
+
+1. Set `interfaceMode` to `r` for REST or `m` for MQTT in `DisplayEye.java` (Alternatively, call `DisplayEye` with the `r` or `m` respectively respectively)
+2. Run `GatherEye.java`
+3. Run `DispalyEye.java`
+4. When the `GatherEye.java` GUI loads, click on simulated screen
+5. Verify that the dot on the `DisplayEye.java` GUI moves to the correct position shortly after

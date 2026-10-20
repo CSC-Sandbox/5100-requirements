@@ -28,7 +28,7 @@ public class TestGazeRestClient {
             server.createContext("/gaze", (exchange) -> {
                 byte[] payload = "{\"error\":\"Method not allowed\"}".getBytes();
                 int status = 405;
-                if (exchange.getRequestMethod() != "GET") {
+                if (exchange.getRequestMethod().equals("GET")) {
                     payload = messages.getNextBytes();
                     status = 200;
                 }
