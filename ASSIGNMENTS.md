@@ -1,4 +1,17 @@
-# CSC 5100 — Sprint 1 Feature Assignments
+# CSC 5100 — Assignment Log (Fall 2026)
+
+This file records the course's shared assignments and labs. Follow the linked assignment-specific instructions for submission requirements.
+
+| Activity | Focus | Reference |
+|---|---|---|
+| A01 / Sprint 1 | Initial requirements and Java feature implementation | Student allocations below; [GitHub Issues](../../issues) |
+| Sprint 2 | REST and MQTT provider/consumer services | [Module documentation](docs/) and assigned issues |
+| Lab 5 | Individual AWS Lambda functions, JUnit tests, API Gateway deployment | [Lab 5 instructions and individual assignments](lambdalab/README.md) |
+| Other assignments | Follow their published instructions and corresponding issues | [GitHub Issues](../../issues) |
+
+**Note:** Lab 5 is a lab, not A03. Its instructions explicitly say not to create an Issue, Story, or Task. The assignment numbering for later activities should be recorded only after checking the published course instructions.
+
+## Sprint 1 — Assigned Features
 
 | Student | Assigned Feature(s) | Points |
 |---|---|---:|
