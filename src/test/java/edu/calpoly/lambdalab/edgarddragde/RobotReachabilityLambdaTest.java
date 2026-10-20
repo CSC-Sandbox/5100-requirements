@@ -27,7 +27,7 @@ class RobotReachabilityLambdaTest {
     Map<String, Object> event = new HashMap<>();
     Map<String, Object> param = new HashMap<>();
 
-    param.put("x", "0.5"); param.put("y", "1"); param.put("z", "1"); param.put("radius", "2.25");
+    param.put("x", "0.5"); param.put("y", "1"); param.put("z", "1"); param.put("radius", "1.5");
     event.put("queryStringParameters", param);
     Map<String, Object> response = lambda.handleRequest(event, null);
     assertEquals(200, response.get("statusCode"));
