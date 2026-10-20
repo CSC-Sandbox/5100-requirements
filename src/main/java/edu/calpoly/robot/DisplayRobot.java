@@ -4,6 +4,13 @@ import javax.swing.JFrame;
 
 import edu.calpoly.provided.Broker;
 
+/**
+ * DisplayRobot is a testclass for RobotGUI and it's related 
+ * classes including RobotBlackBoard and RobotMessage.
+ * 
+ * @author Paul Motter (PaulMotter)
+ * @version 1.0.0 (9/24/2026)
+ */
 public class DisplayRobot {
     private static final String HOST = "localhost";
     private static final int PORT = 5000;
@@ -12,24 +19,27 @@ public class DisplayRobot {
         // Broker for getting data
         Broker broker = new Broker(HOST,PORT);
 
-        // frame to put the robot in.
+        // Frame to put the robot in.
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 700);
         frame.setVisible(true);
 
         // Create Robot.
-        Robot robot = new Robot(1000, 1000);
+        RobotGUI robotGUI = new RobotGUI();
+        robotGUI.showData(true);
+        robotGUI.showRobot(true, 1000, 1000);
         // Add Robot to Frame
-        robot.addToFrame(frame);
-        // Toggle showing data for the robot.
-        robot.showData(true);
+        robotGUI.addToFrame(frame);
         
+        // Blackboard to post updates to
+        RobotBlackBoard rbb = new RobotBlackBoard();
+        rbb.callbackOnPost(robotGUI::update);
+
         while (true){
             String message = broker.receive();
             RobotMessage rm = new RobotMessage(message);
-            // Update Robot with message.
-            robot.update(rm);
+            rbb.post(rm);
         }
     }
 }

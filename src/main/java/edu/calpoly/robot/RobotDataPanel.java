@@ -13,6 +13,13 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+/**
+ * RobotDataPanel displays information about a robot. 
+ * This class is typically created, added to a frame, and then updated continuously.
+ * 
+ * @author Paul Motter (PaulMotter)
+ * @version 1.0.0 (9/24/2026)
+ */
 public class RobotDataPanel extends JPanel {
     private final JLabel[] jointLabels;
     private final JLabel posLabel = new JLabel();
@@ -20,9 +27,13 @@ public class RobotDataPanel extends JPanel {
     private final static Color TITLE_COLOR = Color.white;
     private final static Color TEXT_COLOR = Color.lightGray;
   
-    public RobotDataPanel(int jointCount) {
+    /**
+     * Creates a RobotDataPanel.
+     * Initializes the labels, fonts, headers, and spacings.
+     */
+    public RobotDataPanel() {
         // Setup data panel.
-        jointLabels = new JLabel[jointCount];
+        jointLabels = new JLabel[RobotMessage.NUMBER_OF_JOINTS];
         setBackground(new Color(20, 20, 20));
         setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -65,7 +76,11 @@ public class RobotDataPanel extends JPanel {
         return label;
     }
 
-    // Updates the displayed information.
+    /**
+     * Updates the visualized data.
+     * @param data The RobotMessage you would like to update the panel with.
+     * @param lastUpdated The date you would like to tie this update to.
+     */
     public void update(RobotMessage data, Date lastUpdated) {
         for (int i = 0; i < jointLabels.length && i < data.jointAngles.length; i++) {
             jointLabels[i].setText(String.format("J%d: % .3f", i + 1, data.jointAngles[i]));

@@ -6,10 +6,16 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-
 import javax.swing.JPanel;
 
-public class RobotDisplay extends JPanel {
+/**
+ * RobotDisplayPanel is a GUI class for drawing and updating a Robot.
+ * Typical usage is creating an instance, adding the instance to a JPanel, and then updating the instance.
+ * 
+ * @author Paul Motter (PaulMotter)
+ * @version 1.0.0 (9/24/2026)
+ */
+class RobotDisplayPanel extends JPanel {
     // Class variables for uniformity.
     private static final int DEFAULT_HEIGHT = 640;
     private static final int DEFAULT_WIDTH = 640;
@@ -23,16 +29,28 @@ public class RobotDisplay extends JPanel {
     // Image that is drawn. Owned by and managed by the instance.
     private BufferedImage image;
 
-    RobotDisplay(int bufferWidth, int bufferHeight){
+    /**
+     * Create a RobotDisplay overwritting the default width and height of the image.
+     * @param bufferWidth The resolution of the resulting image width.
+     * @param bufferHeight The resolution of the resulting image height.
+     */
+    RobotDisplayPanel(int bufferWidth, int bufferHeight){
         image = new BufferedImage(bufferWidth, bufferHeight, BufferedImage.TYPE_INT_ARGB);
         this.setBackground(BACKGROUND_COLOR);
     }
 
-    RobotDisplay(){
+    /**
+     * Create a display with the default resolution for the image.
+     * For the default resolution see DEFAULT_WIDTH and DEFAULT_HEIGHT.
+     */
+    RobotDisplayPanel(){
         this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
-    // Clears the image redraws the image and then renders the new image.
+    /**
+     * Clears the previous image and draws a new image given the provided data. The final image is then drawn to the screen.
+     * @param data The RobotMessage you would like to be displayed.
+     */
     public void update(RobotMessage data){
         Graphics2D g = image.createGraphics();
         try {

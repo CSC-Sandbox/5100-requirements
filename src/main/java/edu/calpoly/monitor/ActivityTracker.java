@@ -8,20 +8,38 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.LongSupplier;
 
-// Tracks message timestamps within a moving time window
+/**
+ * Maintains per-source message activity over a moving time window.
+ * Callers record newly received messages and request immutable snapshots for
+ * presentation without needing to manage timestamp expiration themselves.
+ *
+ * @author Dylan Gururajan
+ * @version September 25, 2026
+ */
 public final class ActivityTracker {
     public static final Duration DEFAULT_WINDOW = Duration.ofSeconds(60);
 
+    private final Duration window;
     private final long windowNanos;
     private final LongSupplier timeSource;
     private final EnumMap<DataSource, ArrayDeque<Long>> messageTimes = new EnumMap<>(DataSource.class);
 
-    // Uses the standard 60-second window.
+    /**
+     * Creates a tracker that retains activity for the default 60-second window
+     * using the system's monotonic clock.
+     */
     public ActivityTracker() {
         this(DEFAULT_WINDOW, System::nanoTime);
     }
 
-    // Allows a custom window and clock when checking expiration behavior
+    /**
+     * Creates a tracker with a caller-defined activity window and time source.
+     * Supplying the clock makes expiration behavior deterministic in tests and
+     * allows integration with another monotonic time source.
+     *
+     * @param window length of time that recorded messages remain active
+     * @param timeSource source of monotonic time values in nanoseconds
+     */
     public ActivityTracker(Duration window, LongSupplier timeSource) {
         Objects.requireNonNull(window, "window");
         this.timeSource = Objects.requireNonNull(timeSource, "timeSource");
@@ -30,13 +48,18 @@ public final class ActivityTracker {
             throw new IllegalArgumentException("window must be positive");
         }
 
+        this.window = window;
         this.windowNanos = window.toNanos();
         for (DataSource source : DataSource.values()) {
             messageTimes.put(source, new ArrayDeque<>());
         }
     }
 
-    // Records one message for a source
+    /**
+     * Records a newly received message for the given data source.
+     *
+     * @param source source that produced the message
+     */
     public synchronized void record(DataSource source) {
         Objects.requireNonNull(source, "source");
         long now = timeSource.getAsLong();
@@ -44,7 +67,11 @@ public final class ActivityTracker {
         messageTimes.get(source).addLast(now);
     }
 
-    // Returns the current counts after removing old messages
+    /**
+     * Returns the number of currently active messages for every known source.
+     *
+     * @return immutable mapping from each data source to its active message count
+     */
     public synchronized Map<DataSource, Integer> snapshot() {
         pruneExpired(timeSource.getAsLong());
 
@@ -53,6 +80,15 @@ public final class ActivityTracker {
             counts.put(source, messageTimes.get(source).size());
         }
         return Collections.unmodifiableMap(counts);
+    }
+
+    /**
+     * Returns the moving time window used by this tracker.
+     *
+     * @return duration for which recorded messages remain active
+     */
+    public Duration window() {
+        return window;
     }
 
     private void pruneExpired(long now) {

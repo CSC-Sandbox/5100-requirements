@@ -3,6 +3,8 @@ package edu.calpoly.analysis;
 import java.util.ArrayList;
 import java.util.List;
 
+// Tests the circle analyzer w/ some circular, non-circular, and non-valid inputs.
+
 public final class TestCircleAnalyzer {
     private TestCircleAnalyzer() {
     }

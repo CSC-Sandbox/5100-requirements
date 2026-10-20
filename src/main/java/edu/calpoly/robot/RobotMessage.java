@@ -1,14 +1,29 @@
 package edu.calpoly.robot;
 
+/**
+ * RobotMessage is a data class for parsing ROBOT messages and creating copies of the message.
+ * 
+ * @author Paul Motter (PaulMotter)
+ * @version 1.0.0 (9/24/2026)
+ */
 public class RobotMessage {
-    public float[] jointAngles = new float[6];
+    public static final int NUMBER_OF_JOINTS = 6;
+    public float[] jointAngles = new float[NUMBER_OF_JOINTS];
     public float[] position = new float[3];
 
+    /**
+     * Creates a deep copy of the provided RobotMessage.
+     * @param rm The RobotMessage to be copied.
+     */
     RobotMessage(RobotMessage rm){
         jointAngles = rm.jointAngles.clone();
         position = rm.position.clone();
     }
 
+    /**
+     * Parses a string into a RobotMessage. String should be of the form "ROBOT,J1,J2,J3,J4,J5,J6,X,Y,Z"
+     * @param message The string to be parsed.
+     */
     RobotMessage(String message){
         // expect: "ROBOT,J1,J2,J3,J4,J5,J6,X,Y,Z"
         if (!message.startsWith("ROBOT")){
@@ -31,10 +46,18 @@ public class RobotMessage {
         }
     }
 
+    /**
+     * Creates a deep copy of the RobotMessage
+     * @see java.lang.Object#clone()
+     */
     public RobotMessage clone(){
         return new RobotMessage(this); 
     }
 
+    /**
+     * Provides a descriptive and formatted string of the data.
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
