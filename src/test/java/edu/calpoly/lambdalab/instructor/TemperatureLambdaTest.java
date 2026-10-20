@@ -67,7 +67,7 @@ class TemperatureLambdaTest {
     TemperatureLambda lambda = new TemperatureLambda(storage);
     String id = "c5f1b1b7-ccf5-4b98-80f9-f1123589a123";
     Map<String, Object> post = Map.of("httpMethod", "POST", "body",
-        "{\\"id\\":\\"" + id + "\\",\\"value\\":32,\\"from\\":\\"F\\",\\"to\\":\\"C\\"}");
+        "{\"id\":\"" + id + "\",\"value\":32,\"from\":\"F\",\"to\":\"C\"}");
     Map<String, Object> response = lambda.handleRequest(post, null);
     assertEquals(200, response.get("statusCode"));
     assertTrue(storage.values.containsKey(id));
