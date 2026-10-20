@@ -6,7 +6,7 @@ Shared course repository for requirements, design, implementation, testing, inte
 
 The course combines a **shared Java application** (Sprint 1 and Sprint 2), **individual AWS Lambda exercises (Lab 5)**, and subsequent assignments. The product backlog, user stories, acceptance criteria, and tasks are tracked through [GitHub Issues](../../issues) and the course GitHub Project.
 
-**Start here:** [Assignment log](ASSIGNMENTS.md) · [Lab 5 — AWS Lambda](lambdalab/README.md) · [Pull requests](../../pulls)
+**Start here:** [Assignment log](ASSIGNMENTS.md) · [Lab 5 — AWS Lambda](lab/lambda/README.md) · [Pull requests](../../pulls)
 
 ## Repository structure
 
@@ -16,7 +16,8 @@ The course combines a **shared Java application** (Sprint 1 and Sprint 2), **ind
 ├── ASSIGNMENTS.md            # Chronological assignment log
 ├── pom.xml                   # Java 17 / Maven configuration
 ├── docs/                     # Design and module documentation
-├── lambdalab/                # Lab 5 instructions and individual guides
+├── lab/                      # Course labs
+│   └── lambda/               # Lab 5 instructions and individual guides
 └── src/
     ├── main/
     │   ├── java/edu/calpoly/
@@ -60,7 +61,7 @@ The broker transports strings; consumers interpret message types. Later services
 
 For **story-based assignments**: assigned story → Tasks (sub-issues) → branch → design and implementation → tests → Pull Request → instructor review → merge.
 
-**Lab 5 is different:** follow [its individual submission instructions](lambdalab/README.md); do not create an Issue, Story, or Task for Lab 5.
+**Lab 5 is different:** follow [its individual submission instructions](lab/lambda/README.md); do not create an Issue, Story, or Task for Lab 5.
 
 ### Important Notes — Required for Every Submission
 
@@ -79,5 +80,5 @@ The original storage sample inputs live in `src/main/resources/storage/`. Java c
 ## Documentation and assignments
 
 - [Assignment history and links](ASSIGNMENTS.md)
-- [Lab 5 — Lambda lab](lambdalab/README.md)
+- [Lab 5 — Lambda lab](lab/lambda/README.md)
 - [Module documentation](docs/)
