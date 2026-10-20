@@ -117,6 +117,14 @@ Subscriber behavior:
 The subscriber receives a complete availability snapshot from the provider whenever the provider sends the snapshot. This occurs when the availability state changes. <br>
 For demonstration purposes, the subscriber will output the availability snapshot to the console.
 
+Publishing behavior:
+
+The provider publishes a complete availability snapshot when it starts and publishes another complete snapshot whenever the availability state changes.
+
+For example, if GAZE changes from AVAILABLE to UNAVAILABLE, the provider sends the complete four-source snapshot rather than only the changed source.
+
+Messages are not retained.
+
 ## Shared Domain State
 
 REST and MQTT do not calculate availability independently.
