@@ -20,7 +20,7 @@ import java.util.List;
 public class TestStoreMessages {
 
   private static final int PORT = 5000;
-  private static final Path INPUT_FILE = Path.of("data", "store-input.txt");
+  private static final Path INPUT_FILE = Path.of("src", "main", "resources", "storage", "store-input.txt");
 
   public static void main(String[] args) throws Exception {
     if (!Files.exists(INPUT_FILE)) {

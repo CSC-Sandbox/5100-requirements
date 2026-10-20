@@ -32,7 +32,7 @@ This feature retrieves previously stored message records and sends each record t
 
 The implementation uses two classes:
 
-- `FileMessageReader` reads all records from `data/messages.csv`.
+- `FileMessageReader` reads all records from `src/main/resources/storage/messages.csv`.
 - `RetrieveMessages` retrieves those records and sends each one through `Broker`.
 
 The provided `Broker` is not modified.

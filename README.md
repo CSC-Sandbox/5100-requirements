@@ -1,90 +1,51 @@
-<img width="1536" height="404" alt="CSC_5100_banner" src="https://github.com/user-attachments/assets/60356cf4-d5df-470b-be2b-44597bec95af" />
+<img width="1536" height="404" alt="CSC 5100 banner" src="https://github.com/user-attachments/assets/60356cf4-d5df-470b-be2b-44597bec95af" />
 
-Shared repository for ** CSC 5100: Software Engineering **.
+# CSC 5100 — Software Engineering
 
-This repository contains the shared software project for CSC 5100, including course-provided infrastructure, student implementations, data, tests, and design documentation.
+Shared course repository for requirements, design, implementation, testing, integration, and cloud deployment.
 
-The Product Backlog, User Stories, Acceptance Criteria, and development work are maintained through GitHub Issues and the CSC 5100 GitHub Project.
+The course combines a **shared Java application** (Sprint 1 and Sprint 2), **individual AWS Lambda exercises (Lab 5)**, and subsequent assignments. The product backlog, user stories, acceptance criteria, and tasks are tracked through [GitHub Issues](../../issues) and the course GitHub Project.
 
-## Repository Structure
+**Start here:** [Assignment log](ASSIGNMENTS.md) · [Lab 5 — AWS Lambda](lambdalab/README.md) · [Pull requests](../../pulls)
 
-The Java project follows the standard Maven directory structure.
+## Repository structure
 
 ```text
 5100-requirements/
-├── README.md
-├── ASSIGNMENTS.md
-├── pom.xml
-├── data/
-├── docs/
+├── README.md                 # Course repository guide
+├── ASSIGNMENTS.md            # Chronological assignment log
+├── pom.xml                   # Java 17 / Maven configuration
+├── docs/                     # Design and module documentation
+├── lambdalab/                # Lab 5 instructions and individual guides
 └── src/
-    └── main/
-        └── java/
-            └── edu/
-                └── calpoly/
-                    ├── analysis/
-                    ├── eye/
-                    ├── message/
-                    ├── monitor/
-                    ├── provided/
-                    ├── robot/
-                    ├── security/
-                    └── storage/
+    ├── main/
+    │   ├── java/edu/calpoly/
+    │   │   ├── analysis/
+    │   │   ├── eye/
+    │   │   ├── lambdalab/   # Lab 5 implementations
+    │   │   ├── message/
+    │   │   ├── monitor/
+    │   │   ├── provided/    # Instructor infrastructure
+    │   │   ├── robot/
+    │   │   ├── security/
+    │   │   └── storage/
+    │   └── resources/       # Input fixtures (including storage samples)
+    └── test/java/           # Automated JUnit tests
 ```
 
-Student implementations are organized into packages according to their responsibility.
+## Build and test
 
-The package:
-
-```text
-edu.calpoly.provided
-```
-
-contains infrastructure and test programs supplied by the instructor. Students should use these classes but should not modify them unless specifically instructed.
-
-## Maven
-
-This project uses Maven for project structure, dependency management, compilation, testing, and packaging.
-
-The Maven configuration is defined in:
-
-```text
-pom.xml
-```
-
-The project currently uses Java 17.
-
-Compile the project from the repository root with:
+Use Java 17 and Maven from the repository root:
 
 ```bash
 mvn clean compile
-```
-
-Build the project with:
-
-```bash
+mvn test
 mvn clean package
 ```
 
-As automated tests are introduced, they will be placed under the standard Maven test directory:
+## Shared application: message contract
 
-```text
-src/test/java/
-```
-
-and can be executed with:
-
-```bash
-mvn test
-```
-
-## Common Data Message Contract
-
-Robot, Gaze, Affect, and LiDAR modules use the following common text format:
-
-```text
-TYPE,data...
-```
+The original shared application uses comma-separated text messages through the instructor-provided `edu.calpoly.provided.Broker`:
 
 ```text
 ROBOT,J1,J2,J3,J4,J5,J6,X,Y,Z
@@ -93,83 +54,30 @@ AFFECT,focus,excitement,engagement,interest,stress
 LIDAR,X,Y,Z
 ```
 
-Examples:
+The broker transports strings; consumers interpret message types. Later services may expose REST endpoints and MQTT contracts documented with their modules. Do not assume the original broker is an MQTT broker.
 
-```text
-ROBOT,0.420,-0.180,0.750,0.100,-0.320,0.570,0.250,0.100,0.420
-GAZE,0.35,0.72
-AFFECT,0.72,0.44,0.65,0.58,0.33
-LIDAR,1.25,-0.40,0.15
-```
+## Development workflow
 
-`Broker` transports these messages as strings and does not interpret their type or values.
+For **story-based assignments**: assigned story → Tasks (sub-issues) → branch → design and implementation → tests → Pull Request → instructor review → merge.
 
-## Programming Workflow
+**Lab 5 is different:** follow [its individual submission instructions](lambdalab/README.md); do not create an Issue, Story, or Task for Lab 5.
 
-Development follows the GitHub workflow practiced during Sprint 1:
+### Important Notes — Required for Every Submission
 
-```text
-Assigned User Story
-    ↓
-Break User Story into Tasks (sub-issues)
-    ↓
-Create a branch
-    ↓
-Design / Update Documentation
-    ↓
-Implement in Java
-    ↓
-Test
-    ↓
-Open a Pull Request
-    ↓
-Instructor Review
-    ↓
-Merge
-```
+- Do not push student changes directly to `main`. Open a PR and wait for instructor approval.
+- Identify the relevant story in story-based PRs; describe the implementation and evidence of testing.
+- Complete the assigned scope, update the corresponding documentation, and add meaningful tests.
+- Run `mvn clean package` before submitting Java changes, unless the assignment specifies otherwise.
+- Do not edit instructor-provided infrastructure in `src/main/java/edu/calpoly/provided/` or this root README unless instructed.
+- Do not commit generated build output, secrets, credentials, or machine-specific files.
+- Follow assignment-specific instructions when they differ from the general workflow.
 
-Students should not commit programming work directly to `main`.
+## Storage sample files
 
-A branch should identify the work being performed. For example:
+The original storage sample inputs live in `src/main/resources/storage/`. Java classpath resources can be loaded using `getResourceAsStream("/storage/messages.csv")`; runtime output files should be written to an explicitly configured writable path, not packaged resources. See [storage documentation](docs/module-7-storage/README.md).
 
-```text
-9-gather-robot-state
-```
+## Documentation and assignments
 
-A Pull Request should identify the corresponding User Story, for example:
-
-```text
-Implement #9 Gather Robot State
-```
-
-## Provided Infrastructure
-
-Course-provided infrastructure is located under:
-
-```text
-src/main/java/edu/calpoly/provided/
-```
-
-`Broker` supplies the communication interface used by modules that exchange data through the course communication service.
-
-```java
-import edu.calpoly.provided.Broker;
-
-Broker broker = new Broker("localhost", 5000);
-```
-
-`Encryption` provides the encryption and decryption operations used by the security module.
-
-The `Test...` programs in the `provided` package are instructor-provided programs for exercising different parts of the system. These should not be confused with automated unit tests that will later be placed under `src/test/java`.
-
-## Documentation
-
-Design and architecture documentation belongs under:
-
-```text
-docs/
-```
-
-Documentation should be associated with the corresponding User Story or module.
-
-Do not modify this main README as part of assigned programming work unless specifically instructed.
+- [Assignment history and links](ASSIGNMENTS.md)
+- [Lab 5 — Lambda lab](lambdalab/README.md)
+- [Module documentation](docs/)
