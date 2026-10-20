@@ -67,7 +67,7 @@ jobs:
                 await github.rest.issues.createComment({ ...context.repo, issue_number: pr.number, body });
               }
               if (!pr.draft) {
-                await github.rest.pulls.convertToDraft({ ...context.repo, pull_number: pr.number });
+                await github.graphql('mutation($id: ID!) { convertPullRequestToDraft(input: { pullRequestId: $id }) { pullRequest { isDraft } } }', { id: pr.node_id });
               }
               core.setFailed(problems.join(' | '));
             } else {
