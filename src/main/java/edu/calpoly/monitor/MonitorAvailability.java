@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,24 +26,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * {@link Broker}.</p>
  *
  * @author Adrian Valenzuela (adrian0427)
- * @version September 25, 2026
+ * @version September 29, 2026
  */
 public class MonitorAvailability {
 
     private static final long TIMEOUT_MS = 1000;
 
-    private static final String ROBOT = "ROBOT";
-    private static final String GAZE = "GAZE";
-    private static final String AFFECT = "AFFECT";
-    private static final String LIDAR = "LIDAR";
-
-    private static final List<String> SOURCES =
-            List.of(ROBOT, GAZE, AFFECT, LIDAR);
-
-    private final Map<String, Long> lastReceived =
+    private final Map<DataSource, Long> lastReceived =
             new ConcurrentHashMap<>();
 
-    private final Map<String, Boolean> previousAvailability =
+    private final Map<DataSource, Boolean> previousAvailability =
             new ConcurrentHashMap<>();
 
     private final List<CommunicationFailure> communicationFailures =
@@ -60,7 +53,7 @@ public class MonitorAvailability {
      * @param timestamp the time at which the communication failure was detected
      */
     public record CommunicationFailure(
-            String component,
+            DataSource component,
             LocalDateTime timestamp) {
     }
 
@@ -71,7 +64,7 @@ public class MonitorAvailability {
      * <p>Sources begin as unavailable until their first message is received.</p>
      */
     public MonitorAvailability() {
-        for (String source : SOURCES) {
+        for (DataSource source : DataSource.values()) {
             lastReceived.put(source, 0L);
             previousAvailability.put(source, false);
         }
@@ -83,15 +76,10 @@ public class MonitorAvailability {
     /**
      * Records that a message was received from a monitored source.
      *
-     * <p>The recorded time is used to determine whether the source is still
-     * actively communicating. Unknown source identifiers are ignored.</p>
-     *
-     * @param source the identifier of the source that produced the message
+     * @param source the source that produced the message
      */
-    public void recordMessage(String source) {
-        if (lastReceived.containsKey(source)) {
-            lastReceived.put(source, System.currentTimeMillis());
-        }
+    public void recordMessage(DataSource source) {
+        lastReceived.put(source, System.currentTimeMillis());
     }
 
     /**
@@ -100,11 +88,11 @@ public class MonitorAvailability {
      *
      * <p>A source that has never sent a message is considered unavailable.</p>
      *
-     * @param source the identifier of the monitored source
+     * @param source the monitored source
      * @return {@code true} if the source has communicated within the timeout
      *         period; {@code false} otherwise
      */
-    public boolean isAvailable(String source) {
+    public boolean isAvailable(DataSource source) {
         Long lastTime = lastReceived.get(source);
 
         if (lastTime == null || lastTime == 0) {
@@ -115,11 +103,26 @@ public class MonitorAvailability {
     }
 
     /**
-     * Returns a snapshot of the communication failures detected by the monitor.
+     * Returns the current availability state of every monitored source.
      *
-     * <p>The returned list can be used by other parts of the system to inspect
-     * previously detected outages without modifying the monitor's internal
-     * failure history.</p>
+     * <p>This snapshot is intended to be shared by communication adapters such
+     * as REST and MQTT so they expose the same underlying monitor state.</p>
+     *
+     * @return a snapshot mapping each source to its current availability
+     */
+    public Map<DataSource, Boolean> getAvailabilitySnapshot() {
+        Map<DataSource, Boolean> snapshot =
+                new EnumMap<>(DataSource.class);
+
+        for (DataSource source : DataSource.values()) {
+            snapshot.put(source, isAvailable(source));
+        }
+
+        return snapshot;
+    }
+
+    /**
+     * Returns a snapshot of the communication failures detected by the monitor.
      *
      * @return an unmodifiable copy of the recorded communication failures
      */
@@ -127,23 +130,29 @@ public class MonitorAvailability {
         return List.copyOf(communicationFailures);
     }
 
-    private void processMessage(String message) {
-        if (message == null || message.isBlank()) {
-            return;
-        }
+    /**
+     * Starts a background thread that receives messages from the provided
+     * Broker and updates the availability state of monitored sources.
+     */
+    public void startReceiving() {
+        Thread receiverThread = new Thread(() -> {
+            Broker broker = new Broker("localhost", 5000);
 
-        String[] parts = message.split(",");
+            while (true) {
+                String message = broker.receive();
+                processMessage(message);
+            }
+        });
 
-        if (parts.length == 0) {
-            return;
-        }
-
-        String source = parts[0];
-
-        recordMessage(source);
+        receiverThread.start();
     }
 
-    private void recordCommunicationFailure(String source) {
+    private void processMessage(String message) {
+        DataSource.fromMessage(message)
+                .ifPresent(this::recordMessage);
+    }
+
+    private void recordCommunicationFailure(DataSource source) {
         CommunicationFailure failure =
                 new CommunicationFailure(source, LocalDateTime.now());
 
@@ -168,19 +177,19 @@ public class MonitorAvailability {
                 new GridLayout(4, 2, 10, 10)
         );
 
-        panel.add(new JLabel("Robot"));
+        panel.add(new JLabel(DataSource.ROBOT.displayName()));
         robotStatus = new JLabel("UNAVAILABLE");
         panel.add(robotStatus);
 
-        panel.add(new JLabel("Gaze"));
+        panel.add(new JLabel(DataSource.GAZE.displayName()));
         gazeStatus = new JLabel("UNAVAILABLE");
         panel.add(gazeStatus);
 
-        panel.add(new JLabel("Affect"));
+        panel.add(new JLabel(DataSource.AFFECT.displayName()));
         affectStatus = new JLabel("UNAVAILABLE");
         panel.add(affectStatus);
 
-        panel.add(new JLabel("LiDAR"));
+        panel.add(new JLabel(DataSource.LIDAR.displayName()));
         lidarStatus = new JLabel("UNAVAILABLE");
         panel.add(lidarStatus);
 
@@ -192,14 +201,14 @@ public class MonitorAvailability {
     }
 
     private void updateGUI() {
-        updateStatus(ROBOT, robotStatus);
-        updateStatus(GAZE, gazeStatus);
-        updateStatus(AFFECT, affectStatus);
-        updateStatus(LIDAR, lidarStatus);
+        updateStatus(DataSource.ROBOT, robotStatus);
+        updateStatus(DataSource.GAZE, gazeStatus);
+        updateStatus(DataSource.AFFECT, affectStatus);
+        updateStatus(DataSource.LIDAR, lidarStatus);
     }
 
     private void updateStatus(
-            String source,
+            DataSource source,
             JLabel statusLabel) {
 
         boolean available = isAvailable(source);
@@ -231,8 +240,7 @@ public class MonitorAvailability {
      *
      * <p>The Swing interface is created on the event dispatch thread while a
      * separate receiver thread listens for messages from the provided
-     * {@link Broker}. This allows the interface to continue updating while
-     * message reception blocks waiting for new data.</p>
+     * {@link Broker}.</p>
      *
      * @param args command-line arguments; not used by this application
      */
@@ -241,19 +249,7 @@ public class MonitorAvailability {
             MonitorAvailability monitor =
                     new MonitorAvailability();
 
-            Thread receiverThread = new Thread(() -> {
-                Broker broker =
-                        new Broker("localhost", 5000);
-
-                while (true) {
-                    String message =
-                            broker.receive();
-
-                    monitor.processMessage(message);
-                }
-            });
-
-            receiverThread.start();
+            monitor.startReceiving();
         });
     }
 }
