@@ -36,7 +36,7 @@ public class MovingAverageLambda implements RequestHandler<Map<String, Object>, 
     }
 
     private List<Double> movingAverage(List<Integer> numbers, Integer windowSize) {
-        if (windowSize > numbers.size() || windowSize < 0) {
+        if (windowSize > numbers.size() || windowSize <= 0) {
             throw new IllegalArgumentException("Window Size Bigger than List");
         }
 
