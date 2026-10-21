@@ -1,0 +1,26 @@
+name: A04 Create Native Sub-issues
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "pilot creates only Story #272; all creates remaining Stories too"
+        required: true
+        type: choice
+        options:
+          - pilot
+          - all
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create and verify native sub-issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/a04_create_subissues.py "${{ inputs.scope }}"
