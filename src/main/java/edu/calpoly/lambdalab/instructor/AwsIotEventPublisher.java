@@ -21,9 +21,9 @@ public class AwsIotEventPublisher implements AutoCloseable {
     this.client = client;
   }
 
-  public void publish(String json) {
+  public void publish(String topic, String json) {
     client.publish(PublishRequest.builder()
-        .topic(TOPIC)
+        .topic(topic)
         .qos(1)
         .payload(SdkBytes.fromByteArray(json.getBytes(StandardCharsets.UTF_8)))
         .build());

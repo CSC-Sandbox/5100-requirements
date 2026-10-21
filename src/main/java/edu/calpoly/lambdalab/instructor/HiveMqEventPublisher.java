@@ -12,7 +12,7 @@ public class HiveMqEventPublisher {
   public static final String TOPIC = AwsIotEventPublisher.TOPIC;
   public static final String BROKER = "tcp://broker.hivemq.com:1883";
 
-  public void publish(String json) {
+  public void publish(String topic, String json) {
     MqttClient client = null;
     try {
       client = new MqttClient(BROKER, "csc5100-a04-" + UUID.randomUUID(), new MemoryPersistence());
@@ -23,7 +23,7 @@ public class HiveMqEventPublisher {
       client.connect(options);
       MqttMessage message = new MqttMessage(json.getBytes(StandardCharsets.UTF_8));
       message.setQos(1);
-      client.publish(TOPIC, message);
+      client.publish(topic, message);
     } catch (Exception e) {
       throw new IllegalStateException("HiveMQ publish failed", e);
     } finally {
