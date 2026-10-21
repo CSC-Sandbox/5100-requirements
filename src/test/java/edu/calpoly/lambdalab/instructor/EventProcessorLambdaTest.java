@@ -17,7 +17,7 @@ class EventProcessorLambdaTest {
   @Test
   void forwardsUnmodifiedJsonToMqtt() {
     java.util.List<String> published = new java.util.ArrayList<>();
-    String body = "{\\"id\\":\\"14caa8ee-ca63-41f4-b57f-074007b2affc\\",\\"result\\":0.0}";
+    String body = "{\"id\":\"14caa8ee-ca63-41f4-b57f-074007b2affc\",\"result\":0.0}";
     new EventProcessorLambda(published::add).handleRequest(
         Map.of("Records", List.of(Map.of("body", body))), null);
     assertEquals(List.of(body), published);
