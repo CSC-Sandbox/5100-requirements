@@ -76,7 +76,7 @@ def main():
             if exact:
                 child = exact[0]["number"]
             else:
-                payload = {"title": title, "body": f"Parent Story: #{parent}\\n\\n**Lambda:** \\u0060{name}\\u0060\\n\\n**Task {n} acceptance criteria**\\n{details}"}
+                payload = {"title": title, "body": f"Parent Story: #{parent}\n\n**Lambda:** `{name}`\n\n**Task {n} acceptance criteria**\n{details}"}
                 if assignees:
                     payload["assignees"] = assignees
                 child = call("POST", f"/repos/{OWNER}/{REPO}/issues", payload)["number"]
