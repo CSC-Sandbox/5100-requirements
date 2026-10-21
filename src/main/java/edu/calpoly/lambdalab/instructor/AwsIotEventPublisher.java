@@ -1,6 +1,7 @@
 package edu.calpoly.lambdalab.instructor;
 
 import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClient;
 import software.amazon.awssdk.services.iotdataplane.model.PublishRequest;
@@ -11,7 +12,9 @@ public class AwsIotEventPublisher implements AutoCloseable {
   private final IotDataPlaneClient client;
 
   public AwsIotEventPublisher() {
-    this(IotDataPlaneClient.builder().build());
+    this(IotDataPlaneClient.builder()
+        .endpointOverride(URI.create("https://" + System.getenv("A04_IOT_ENDPOINT")))
+        .build());
   }
 
   AwsIotEventPublisher(IotDataPlaneClient client) {
