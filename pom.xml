@@ -66,6 +66,11 @@
             <artifactId>sqs</artifactId>
             <version>2.33.9</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>iotdataplane</artifactId>
+            <version>2.33.9</version>
+        </dependency>
     </dependencies>
 
     <build>
