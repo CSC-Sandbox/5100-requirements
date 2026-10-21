@@ -12,7 +12,6 @@ permissions:
 jobs:
   validate-a04:
     name: A04 Submission Validation
-    if: contains(github.event.pull_request.title, 'A04') || contains(github.event.pull_request.body || '', 'A04 Story:')
     runs-on: ubuntu-latest
     steps:
       - name: Verify seven completed Story sub-issues
@@ -21,6 +20,11 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const pr = context.payload.pull_request;
+            const isA04 = /A04/i.test(pr.title || '') || /A04 Story:/i.test(pr.body || '');
+            if (!isA04) {
+              core.info('Non-A04 PR: A04 validation not applicable; required check passes.');
+              return;
+            }
             const marker = '<!-- a04-submission-validation -->';
             const match = (pr.body || '').match(/^A04 Story:\s*#(\d+)\s*$/mi);
             const problems = [];
