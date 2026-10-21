@@ -12,7 +12,7 @@ permissions:
 jobs:
   validate-a04:
     name: A04 Submission Validation
-    if: startsWith(github.event.pull_request.title, 'A04 - ')
+    if: contains(github.event.pull_request.title, 'A04') || contains(github.event.pull_request.body || '', 'A04 Story:')
     runs-on: ubuntu-latest
     steps:
       - name: Verify seven completed Story sub-issues
@@ -24,6 +24,9 @@ jobs:
             const marker = '<!-- a04-submission-validation -->';
             const match = (pr.body || '').match(/^A04 Story:\s*#(\d+)\s*$/mi);
             const problems = [];
+            if (!pr.title.startsWith('A04 - ')) {
+              problems.push('PR title must start with `A04 - ` (for example, `A04 - GazeClusterLambda`).');
+            }
             let tasks = [];
             let storyNumber = null;
             if (!match) {
@@ -32,8 +35,8 @@ jobs:
               storyNumber = Number(match[1]);
               try {
                 const story = await github.rest.issues.get({ ...context.repo, issue_number: storyNumber });
-                if (!story.data.title.startsWith('[A04]')) {
-                  problems.push(`Issue #${storyNumber} is not titled as an A04 Story.`);
+                if (!/^A04\\s*[—–-]/.test(story.data.title)) {
+                  problems.push(`Issue #${storyNumber} is not titled as an A04 Story (expected `A04 — ...`).`);
                 }
                 // GitHub native sub-issues, not a checklist in the issue body.
                 const response = await github.paginate('GET /repos/{owner}/{repo}/issues/{issue_number}/sub_issues', {
