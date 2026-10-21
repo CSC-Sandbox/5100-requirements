@@ -7,7 +7,7 @@ import java.awt.*;
  * Creates the UI components to display info about the current gaze position and connection status
  *
  * @author James Yaguma
- * @version 1.0 (2026-09-25)
+ * @version 1.1 (2026-10-20)
  */
 public class GazeInfo extends JPanel{
 
@@ -142,9 +142,12 @@ public class GazeInfo extends JPanel{
     public void setGazePoint(GazePoint gazePoint) {
         this.gazePoint.setXY(gazePoint.x, gazePoint.y);
 
+        // Round x and y values to 12 decimal places
+        double labelX = Math.round(this.gazePoint.x * 1000000000000d) / 1000000000000d;
+        double labelY = Math.round(this.gazePoint.y * 1000000000000d) / 1000000000000d;
         // Update position labels
-        xLabel.setText("X:   " + this.gazePoint.x);
-        yLabel.setText("Y:   " + this.gazePoint.y);
+        xLabel.setText("X:   " + labelX);
+        yLabel.setText("Y:   " + labelY);
 
         // Update connection status label
         if (conStatus) {
