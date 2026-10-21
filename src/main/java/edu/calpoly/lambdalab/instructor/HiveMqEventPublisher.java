@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 /** Mirror AWS IoT Core publishing via the public HiveMQ MQTT broker. */
 public class HiveMqEventPublisher {
@@ -14,7 +15,7 @@ public class HiveMqEventPublisher {
   public void publish(String json) {
     MqttClient client = null;
     try {
-      client = new MqttClient(BROKER, "csc5100-a04-" + UUID.randomUUID());
+      client = new MqttClient(BROKER, "csc5100-a04-" + UUID.randomUUID(), new MemoryPersistence());
       MqttConnectOptions options = new MqttConnectOptions();
       options.setConnectionTimeout(5);
       options.setAutomaticReconnect(false);
