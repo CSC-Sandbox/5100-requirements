@@ -1,0 +1,39 @@
+package edu.calpoly.lambdalab.instructor;
+
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+/** Mirror AWS IoT Core publishing via the public HiveMQ MQTT broker. */
+public class HiveMqEventPublisher {
+  public static final String TOPIC = AwsIotEventPublisher.TOPIC;
+  public static final String BROKER = "tcp://broker.hivemq.com:1883";
+
+  public void publish(String json) {
+    MqttClient client = null;
+    try {
+      client = new MqttClient(BROKER, "csc5100-a04-" + UUID.randomUUID());
+      MqttConnectOptions options = new MqttConnectOptions();
+      options.setConnectionTimeout(5);
+      options.setAutomaticReconnect(false);
+      options.setCleanSession(true);
+      client.connect(options);
+      MqttMessage message = new MqttMessage(json.getBytes(StandardCharsets.UTF_8));
+      message.setQos(1);
+      client.publish(TOPIC, message);
+    } catch (Exception e) {
+      throw new IllegalStateException("HiveMQ publish failed", e);
+    } finally {
+      if (client != null) {
+        try {
+          if (client.isConnected()) client.disconnect();
+        } catch (Exception ignored) {
+          // Connection is being discarded after this invocation.
+        }
+        try { client.close(); } catch (Exception ignored) { }
+      }
+    }
+  }
+}
