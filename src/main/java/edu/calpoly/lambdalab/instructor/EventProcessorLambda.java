@@ -12,14 +12,23 @@ import java.util.UUID;
 public class EventProcessorLambda implements RequestHandler<Map<String, Object>, Void> {
   private final ObjectMapper mapper = new ObjectMapper();
   private final java.util.function.Consumer<String> publisher;
+  private final java.util.function.Consumer<String> hiveMqPublisher;
 
   public EventProcessorLambda() {
     this(System.getenv("A04_IOT_ENDPOINT") == null
-        ? null : new AwsIotEventPublisher()::publish);
+        ? null : new AwsIotEventPublisher()::publish,
+        "true".equalsIgnoreCase(System.getenv("A04_HIVEMQ_ENABLED"))
+            ? new HiveMqEventPublisher()::publish : null);
   }
 
   EventProcessorLambda(java.util.function.Consumer<String> publisher) {
+    this(publisher, null);
+  }
+
+  EventProcessorLambda(java.util.function.Consumer<String> publisher,
+      java.util.function.Consumer<String> hiveMqPublisher) {
     this.publisher = publisher;
+    this.hiveMqPublisher = hiveMqPublisher;
   }
 
   @Override
@@ -42,16 +51,36 @@ public class EventProcessorLambda implements RequestHandler<Map<String, Object>,
         String log = "A04 SQS received id=" + id + " result=" + result;
         if (context != null) context.getLogger().log(log);
         else System.out.println(log);
+        RuntimeException publishError = null;
         if (publisher != null) {
-          publisher.accept(body);
-          String sent = "A04 IoT published id=" + id + " topic=" + AwsIotEventPublisher.TOPIC;
-          if (context != null) context.getLogger().log(sent);
-          else System.out.println(sent);
+          try {
+            publisher.accept(body);
+            log(context, "A04 IoT published id=" + id + " topic=" + AwsIotEventPublisher.TOPIC);
+          } catch (RuntimeException e) {
+            log(context, "A04 IoT publish FAILED id=" + id + ": " + e);
+            publishError = e;
+          }
         }
+        if (hiveMqPublisher != null) {
+          try {
+            hiveMqPublisher.accept(body);
+            log(context, "A04 HiveMQ published id=" + id + " topic=" + HiveMqEventPublisher.TOPIC);
+          } catch (RuntimeException e) {
+            log(context, "A04 HiveMQ publish FAILED id=" + id + ": " + e);
+            if (publishError == null) publishError = e;
+            else publishError.addSuppressed(e);
+          }
+        }
+        if (publishError != null) throw publishError;
       } catch (Exception e) {
         throw new IllegalArgumentException("SQS event processing failed; retry expected", e);
       }
     }
     return null;
+  }
+
+  private static void log(Context context, String message) {
+    if (context != null) context.getLogger().log(message);
+    else System.out.println(message);
   }
 }
