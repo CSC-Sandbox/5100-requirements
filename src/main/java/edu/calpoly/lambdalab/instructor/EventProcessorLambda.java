@@ -7,12 +7,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
-/** A04 SQS consumer: validates, logs and forwards JSON to AWS IoT Core. */
+/** A04 SQS consumer: validates and forwards JSON to both MQTT brokers. */
 public class EventProcessorLambda implements RequestHandler<Map<String, Object>, Void> {
   private final ObjectMapper mapper = new ObjectMapper();
-  private final java.util.function.Consumer<String> publisher;
-  private final java.util.function.Consumer<String> hiveMqPublisher;
+  private final BiConsumer<String, String> publisher;
+  private final BiConsumer<String, String> hiveMqPublisher;
 
   public EventProcessorLambda() {
     this(System.getenv("A04_IOT_ENDPOINT") == null
@@ -21,12 +22,8 @@ public class EventProcessorLambda implements RequestHandler<Map<String, Object>,
             ? new HiveMqEventPublisher()::publish : null);
   }
 
-  EventProcessorLambda(java.util.function.Consumer<String> publisher) {
-    this(publisher, null);
-  }
-
-  EventProcessorLambda(java.util.function.Consumer<String> publisher,
-      java.util.function.Consumer<String> hiveMqPublisher) {
+  EventProcessorLambda(BiConsumer<String, String> publisher,
+      BiConsumer<String, String> hiveMqPublisher) {
     this.publisher = publisher;
     this.hiveMqPublisher = hiveMqPublisher;
   }
@@ -46,16 +43,14 @@ public class EventProcessorLambda implements RequestHandler<Map<String, Object>,
         if (!UUID.fromString(id).toString().equals(id)) {
           throw new IllegalArgumentException("Invalid correlation id");
         }
-        String result = json.path("result").asText(null);
-        if (result == null) throw new IllegalArgumentException("Missing result");
-        String log = "A04 SQS received id=" + id + " result=" + result;
-        if (context != null) context.getLogger().log(log);
-        else System.out.println(log);
+        if (!json.hasNonNull("result")) throw new IllegalArgumentException("Missing result");
+        String topic = A04MqttTopics.forEvent(json);
+        log(context, "A04 SQS received id=" + id + " topic=" + topic);
         RuntimeException publishError = null;
         if (publisher != null) {
           try {
-            publisher.accept(body);
-            log(context, "A04 IoT published id=" + id + " topic=" + AwsIotEventPublisher.TOPIC);
+            publisher.accept(topic, body);
+            log(context, "A04 IoT published id=" + id + " topic=" + topic);
           } catch (RuntimeException e) {
             log(context, "A04 IoT publish FAILED id=" + id + ": " + e);
             publishError = e;
@@ -63,8 +58,8 @@ public class EventProcessorLambda implements RequestHandler<Map<String, Object>,
         }
         if (hiveMqPublisher != null) {
           try {
-            hiveMqPublisher.accept(body);
-            log(context, "A04 HiveMQ published id=" + id + " topic=" + HiveMqEventPublisher.TOPIC);
+            hiveMqPublisher.accept(topic, body);
+            log(context, "A04 HiveMQ published id=" + id + " topic=" + topic);
           } catch (RuntimeException e) {
             log(context, "A04 HiveMQ publish FAILED id=" + id + ": " + e);
             if (publishError == null) publishError = e;
