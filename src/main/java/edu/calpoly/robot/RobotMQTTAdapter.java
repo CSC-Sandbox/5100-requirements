@@ -58,22 +58,43 @@ public class RobotMQTTAdapter extends Thread {
             options.setAutomaticReconnect(true);
 
             client.connect(options);
-            client.subscribe(topic, (topic, message) -> {
-                try {
-                    RobotMessage robotMessage = mapper.readValue(
-                            message.getPayload(),
-                            RobotMessage.class);
-                    onSub.accept(robotMessage);
-                } catch (Exception e) {
-                    System.err.println(
-                            "Invalid robot message: " + e.getMessage());
-                }
-            });
+            client.subscribe(topic, (topic, message) ->
+                    handlePayload(message.getPayload()));
 
             System.out.println("Subscribed to " + topic);
         } catch (Exception e) {
             System.err.println(
                     "Unable to start MQTT subscriber: " + e.getMessage());
         }
+    }
+
+    /**
+     * Parses an MQTT payload and posts it to the blackboard.
+     * Invalid payloads are reported and ignored.
+     *
+     * @param payload raw MQTT message payload
+     * @return true if the payload was valid and posted, false otherwise
+     */
+    boolean handlePayload(byte[] payload) {
+        try {
+            RobotMessage robotMessage = mapper.readValue(
+                    payload,
+                    RobotMessage.class);
+            onSub.accept(robotMessage);
+            return true;
+        } catch (Exception e) {
+            System.err.println(
+                    "Invalid robot message: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Returns the topic this adapter subscribes to.
+     *
+     * @return the MQTT topic
+     */
+    String getTopic() {
+        return topic;
     }
 }

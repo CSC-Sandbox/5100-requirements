@@ -11,9 +11,10 @@
     - `PUT http://localhost:5001/robot` receives a JSON body of `{"jointAngles":[j1,j2,j3,j4,j5,j6],"position":[x,y,z]}` and updates the `RobotBlackBoard` within the `RobotServer`.
     - `GET http://localhost:5001/robot` returns the latest robot data as JSON, or `404` when no data exists.
 
-### TestRobotRESTAdapter.java
+### RobotRESTAdapterTest.java (`src/test/java/edu/calpoly/robot/`)
 
-- Creates a RobotRESTProvider and sends messages to a RobotServer running on localhost. The test cases will print pass or fail.
+- JUnit tests that start a `RobotRESTAdapter` on a free local port and send requests through `RobotRESTProvider`. No running `RobotServer` is needed.
+- Covers `GET` with no data (`404`), valid `PUT` (`200`, echoed body, blackboard and callback updated), invalid and malformed `PUT` (`400`, state unchanged), `GET` returning the latest data as JSON, and unsupported methods (`405`).
 
 ### RobotMQTTAdapter.java
 
@@ -21,9 +22,10 @@
 - Valid JSON robot data is posted to `RobotBlackBoard`.
 - Invalid messages are reported and ignored.
 
-### TestRobotMQTTAdapter.java
+### RobotMQTTAdapterTest.java (`src/test/java/edu/calpoly/robot/`)
 
-- Creates a RobotMQTTProvider and publishes to the RobotServer. Every 10 messages the published messages alternate between random valid messages to invalid messages.
+- JUnit tests for `RobotMQTTAdapter.handlePayload`, the handler called for each received MQTT message. Payloads are passed in directly, so no broker connection is needed.
+- Covers the contract topic, valid payloads reaching the blackboard and its callback, rejection of wrong-length, missing-field, malformed, CSV, and empty payloads, and invalid messages not overwriting previous data.
 
 ### RobotRESTProvider.java
 
@@ -72,9 +74,7 @@
 
 ## Running Tests
 
-1. Run `mvn clean test`.
-2. Start `RobotServer`, then run `TestRobotRESTAdapter` to test REST endpoints.
-3. Start `RobotServer`, then run `TestRobotMQTTAdapter` to test MQTT consumption.
+Run `mvn clean test`. The robot tests are `RobotRESTAdapterTest` and `RobotMQTTAdapterTest`; to run only those, use `mvn test -Dtest='Robot*Test'`.
 
 ## Communication Contract
 

@@ -60,16 +60,16 @@ public class RobotRESTAdapter extends Thread{
                     robotGET(exchange);
                     break;
                 case "POST":
-                    reply(404, "POST does not exist.".getBytes(), exchange);
+                    reply(405, "POST does not exist.".getBytes(), exchange);
                     break;
                 case "PUT":
                     robotPUT(exchange);
                     break;
                 case "DELETE":
-                    reply(404, "DELETE does not exist.".getBytes(), exchange);
+                    reply(405, "DELETE does not exist.".getBytes(), exchange);
                     break;
                 default:
-                    reply(404, "Method does not exist.".getBytes(), exchange);
+                    reply(405, "Method does not exist.".getBytes(), exchange);
                     break;
             }
         });
@@ -142,6 +142,22 @@ public class RobotRESTAdapter extends Thread{
         InetSocketAddress address = server.getAddress();
         System.out.println("REST server running at " 
         + "http://" + address.getHostString() + ":" + address.getPort() + "/robot");
+    }
+
+    /**
+     * Returns the port the server is bound to. Useful when the server
+     * was created with port 0 (any free port).
+     * @return the bound port.
+     */
+    int getPort(){
+        return server.getAddress().getPort();
+    }
+
+    /**
+     * Stops the server immediately.
+     */
+    void shutdown(){
+        server.stop(0);
     }
 
     /**
