@@ -59,7 +59,7 @@ jobs:
               const body = marker + '\n**A04 submission is not ready for instructor review.**\n\n' +
                 problems.map(problem => '- ' + problem).join('\n') +
                 '\n\nComplete and close all seven native sub-issue Tasks before submitting your A04 PR. ' +
-                'Then mark the PR **Ready for review**. (For A04, closing a Task is the verifiable Done state.)';
+                'After completing the Tasks, update your PR and request instructor review. (For A04, closing a Task is the verifiable Done state.)';
               const comments = await github.paginate(github.rest.issues.listComments, {
                 ...context.repo, issue_number: pr.number, per_page: 100
               });
@@ -68,9 +68,6 @@ jobs:
                 await github.rest.issues.updateComment({ ...context.repo, comment_id: prior.id, body });
               } else {
                 await github.rest.issues.createComment({ ...context.repo, issue_number: pr.number, body });
-              }
-              if (!pr.draft) {
-                await github.graphql('mutation($id: ID!) { convertPullRequestToDraft(input: { pullRequestId: $id }) { pullRequest { isDraft } } }', { id: pr.node_id });
               }
               core.setFailed(problems.join(' | '));
             } else {
