@@ -35,7 +35,7 @@ jobs:
               storyNumber = Number(match[1]);
               try {
                 const story = await github.rest.issues.get({ ...context.repo, issue_number: storyNumber });
-                if (!/^A04\\s*[—–-]/.test(story.data.title)) {
+                if (!/^A04\s*[—–-]/.test(story.data.title)) {
                   problems.push(`Issue #${storyNumber} is not titled as an A04 Story (expected A04 — ...).`);
                 }
                 // GitHub native sub-issues, not a checklist in the issue body.
