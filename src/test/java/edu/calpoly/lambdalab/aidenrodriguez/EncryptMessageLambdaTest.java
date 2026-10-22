@@ -2,6 +2,7 @@ package edu.calpoly.lambdalab.aidenrodriguez;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,6 +28,8 @@ class EncryptMessageLambdaTest {
     assertEquals(200, response.get("statusCode"));
     assertTrue(response.get("body").toString().contains("\"original\":\"Hello\""));
     assertTrue(response.get("body").toString().contains("\"encrypted\":\"Khoor\""));
+    assertTrue(response.get("body").toString().contains("\"shift\":3"));
+    assertTrue(response.get("body").toString().contains("\"id\":\""));
   }
 
   @Test
@@ -63,5 +66,62 @@ class EncryptMessageLambdaTest {
     event.put("queryStringParameters", queryParameters);
     Map<String, Object> response = lambda.handleRequest(event, null);
     assertEquals(400, response.get("statusCode"));
+  }
+
+  @Test
+  void postEncryptsAndGetByUuidReturnsTheSameStoredResult() {
+    EncryptMessageLambda lambda = new EncryptMessageLambda();
+    Map<String, Object> created = lambda.handleRequest(Map.of(
+        "httpMethod", "POST", "body", "{\"message\":\"Hello\",\"shift\":\"3\"}"), null);
+
+    assertEquals(200, created.get("statusCode"));
+    String body = created.get("body").toString();
+    String id = body.replaceFirst(".*\\\"id\\\":\\\"([^\\\"]+)\\\".*", "$1");
+    assertEquals(36, id.length());
+    UUID.fromString(id);
+
+    Map<String, Object> retrieved = lambda.handleRequest(Map.of("httpMethod", "GET",
+        "queryStringParameters", Map.of("id", id)), null);
+    assertEquals(200, retrieved.get("statusCode"));
+    assertEquals(body, retrieved.get("body"));
+  }
+
+  @Test
+  void rejectsInvalidLookupUuid() {
+    EncryptMessageLambda lambda = new EncryptMessageLambda();
+    Map<String, Object> response = lambda.handleRequest(Map.of("httpMethod", "GET",
+        "queryStringParameters", Map.of("id", "not-a-uuid")), null);
+    assertEquals(400, response.get("statusCode"));
+  }
+
+  @Test
+  void storesOneUuidKeyedRecordForEachSuccessfulOperation() {
+    class FakeStorage implements EncryptMessageLambda.Storage {
+      final Map<String, String> values = new HashMap<>();
+      public void save(String id, String json) { values.put(id, json); }
+      public String get(String id) { return values.get(id); }
+    }
+    FakeStorage storage = new FakeStorage();
+    EncryptMessageLambda lambda = new EncryptMessageLambda(storage);
+
+    Map<String, Object> response = lambda.handleRequest(Map.of("httpMethod", "POST", "body",
+        "{\"message\":\"Test\",\"shift\":\"1\"}"), null);
+    assertEquals(200, response.get("statusCode"));
+    String body = response.get("body").toString();
+    String id = body.replaceFirst(".*\\\"id\\\":\\\"([^\\\"]+)\\\".*", "$1");
+    assertEquals(1, storage.values.size());
+    assertEquals(body, storage.values.get(id));
+  }
+
+  @Test
+  void reportsUsefulErrorWhenPersistenceFails() {
+    EncryptMessageLambda lambda = new EncryptMessageLambda(new EncryptMessageLambda.Storage() {
+      public void save(String id, String json) { throw new IllegalStateException("DynamoDB unavailable"); }
+      public String get(String id) { return null; }
+    });
+    Map<String, Object> response = lambda.handleRequest(Map.of("httpMethod", "POST", "body",
+        "{\"message\":\"Test\",\"shift\":\"1\"}"), null);
+    assertEquals(500, response.get("statusCode"));
+    assertTrue(response.get("body").toString().contains("Unable to persist result"));
   }
 }
