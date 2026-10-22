@@ -12,9 +12,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
- * Persistent storage for EncryptMessageLambda results. The UUID {@code id} is
- * the DynamoDB String partition key, and the identical JSON is stored at
- * {@code aidenrodriguez/encrypt/<id>.json} in S3.
+ * Persistent storage for EncryptMessageLambda results.
  */
 final class EncryptMessageStorage implements EncryptMessageLambda.Storage {
     private static final String OWNER = "aidenrodriguez";
