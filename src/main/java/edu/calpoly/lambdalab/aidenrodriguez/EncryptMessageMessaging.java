@@ -21,7 +21,7 @@ final class EncryptMessageMessaging implements EncryptMessageLambda.Messaging {
     }
 
     @Override
-    public void publishSns(String json) {
+    public void publish(String json) {
         sns.publish(PublishRequest.builder().topicArn(topicArn).message(json).build());
     }
 }

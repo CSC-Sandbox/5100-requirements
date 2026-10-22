@@ -23,7 +23,8 @@ public class EncryptMessageLambda implements RequestHandler<Map<String, Object>,
     private static final String OPERATION = "EncryptMessageLambda";
     private final ObjectMapper mapper = new ObjectMapper();
     private final Storage storage;
-    private final Messaging messaging;
+    private final Messaging snsMessaging;
+    private final Messaging sqsMessaging;
 
     /** Storage seam; production uses DynamoDB and tests may supply a fake. */
     interface Storage {
@@ -31,9 +32,9 @@ public class EncryptMessageLambda implements RequestHandler<Map<String, Object>,
         String get(String id);
     }
 
-    /** SNS is deliberately a separate branch from the later SQS integration. */
+    /** A single, independently configured event-delivery branch. */
     interface Messaging {
-        void publishSns(String json);
+        void publish(String json);
     }
 
     /**
@@ -41,16 +42,22 @@ public class EncryptMessageLambda implements RequestHandler<Map<String, Object>,
      * runs without that configuration retain in-memory lookup support.
      */
     public EncryptMessageLambda() {
-        this(defaultStorage(), defaultMessaging());
+        this(defaultStorage(), defaultSnsMessaging(), defaultSqsMessaging());
     }
 
     EncryptMessageLambda(Storage storage) {
-        this(storage, null);
+        this(storage, null, null);
     }
 
+    /** Kept for the Task 4 SNS unit tests. */
     EncryptMessageLambda(Storage storage, Messaging messaging) {
+        this(storage, messaging, null);
+    }
+
+    EncryptMessageLambda(Storage storage, Messaging snsMessaging, Messaging sqsMessaging) {
         this.storage = storage;
-        this.messaging = messaging;
+        this.snsMessaging = snsMessaging;
+        this.sqsMessaging = sqsMessaging;
     }
 
     @Override
@@ -81,7 +88,9 @@ public class EncryptMessageLambda implements RequestHandler<Map<String, Object>,
             output.put("encrypted", encrypted);
             output.put("shift", shift);
             output.put("id", id);
-            output.put("messaging", Map.of("sns", messaging == null ? "not_configured" : "published"));
+            output.put("messaging", Map.of(
+                    "sns", snsMessaging == null ? "not_configured" : "published",
+                    "sqs", sqsMessaging == null ? "not_configured" : "queued"));
             String json = mapper.writeValueAsString(output);
             try {
                 storage.save(id, json);
@@ -89,17 +98,31 @@ public class EncryptMessageLambda implements RequestHandler<Map<String, Object>,
                 log(context, "Unable to persist encryption result", e);
                 return httpResponse(500, "{\"error\":\"Unable to persist result\"}");
             }
-            if (messaging != null) {
+            if (snsMessaging != null || sqsMessaging != null) {
                 String eventJson = mapper.writeValueAsString(Map.of(
                         "id", id,
                         "operation", OPERATION,
                         "result", output));
-                try {
-                    messaging.publishSns(eventJson);
-                    output.put("messaging", Map.of("sns", "published"));
-                } catch (RuntimeException e) {
-                    log(context, "Unable to publish SNS event", e);
-                    return httpResponse(502, "{\"error\":\"Unable to publish SNS event\"}");
+                RuntimeException deliveryFailure = null;
+                if (snsMessaging != null) {
+                    try {
+                        snsMessaging.publish(eventJson);
+                    } catch (RuntimeException e) {
+                        log(context, "Unable to publish SNS event", e);
+                        deliveryFailure = e;
+                    }
+                }
+                if (sqsMessaging != null) {
+                    try {
+                        sqsMessaging.publish(eventJson);
+                    } catch (RuntimeException e) {
+                        log(context, "Unable to queue SQS event", e);
+                        if (deliveryFailure == null) deliveryFailure = e;
+                        else deliveryFailure.addSuppressed(e);
+                    }
+                }
+                if (deliveryFailure != null) {
+                    return httpResponse(502, "{\"error\":\"Unable to deliver event\"}");
                 }
             }
             return httpResponse(200, json);
@@ -177,9 +200,14 @@ public class EncryptMessageLambda implements RequestHandler<Map<String, Object>,
         return value == null || value.isBlank() ? defaultValue : value;
     }
 
-    private static Messaging defaultMessaging() {
+    private static Messaging defaultSnsMessaging() {
         String topicArn = System.getenv("A04_SNS_TOPIC_ARN");
         return topicArn == null || topicArn.isBlank() ? null : new EncryptMessageMessaging(topicArn);
+    }
+
+    private static Messaging defaultSqsMessaging() {
+        String queueUrl = System.getenv("A04_SQS_QUEUE_URL");
+        return queueUrl == null || queueUrl.isBlank() ? null : new EncryptMessageSqsMessaging(queueUrl);
     }
 
     private static void log(Context context, String message, Exception error) {

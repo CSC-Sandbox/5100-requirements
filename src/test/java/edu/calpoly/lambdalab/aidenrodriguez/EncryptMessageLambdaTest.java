@@ -160,6 +160,47 @@ class EncryptMessageLambdaTest {
     Map<String, Object> response = lambda.handleRequest(Map.of("httpMethod", "POST", "body",
         "{\"message\":\"Hello\",\"shift\":\"3\"}"), null);
     assertEquals(502, response.get("statusCode"));
-    assertTrue(response.get("body").toString().contains("Unable to publish SNS event"));
+    assertTrue(response.get("body").toString().contains("Unable to deliver event"));
+  }
+
+  @Test
+  void queuesSameCorrelatedRoutingEnvelopeIndependentlyOfSns() {
+    List<String> snsEvents = new ArrayList<>();
+    List<String> sqsEvents = new ArrayList<>();
+    EncryptMessageLambda.Storage storage = new EncryptMessageLambda.Storage() {
+      public void save(String id, String json) { }
+      public String get(String id) { return null; }
+    };
+    EncryptMessageLambda lambda = new EncryptMessageLambda(storage, snsEvents::add, sqsEvents::add);
+
+    Map<String, Object> response = lambda.handleRequest(Map.of("httpMethod", "POST", "body",
+        "{\"message\":\"Hello\",\"shift\":\"3\"}"), null);
+    assertEquals(200, response.get("statusCode"));
+    assertEquals(1, snsEvents.size());
+    assertEquals(1, sqsEvents.size());
+    assertEquals(snsEvents.get(0), sqsEvents.get(0));
+    String id = response.get("body").toString()
+        .replaceFirst(".*\\\"id\\\":\\\"([^\\\"]+)\\\".*", "$1");
+    assertTrue(sqsEvents.get(0).contains("\"id\":\"" + id + "\""));
+    assertTrue(sqsEvents.get(0).contains("\"operation\":\"EncryptMessageLambda\""));
+    assertTrue(sqsEvents.get(0).contains("\"result\""));
+    assertTrue(response.get("body").toString().contains("\"sqs\":\"queued\""));
+  }
+
+  @Test
+  void attemptsSqsWhenIndependentSnsBranchFails() {
+    List<String> sqsEvents = new ArrayList<>();
+    EncryptMessageLambda.Storage storage = new EncryptMessageLambda.Storage() {
+      public void save(String id, String json) { }
+      public String get(String id) { return null; }
+    };
+    EncryptMessageLambda lambda = new EncryptMessageLambda(storage, json -> {
+      throw new IllegalStateException("SNS unavailable");
+    }, sqsEvents::add);
+
+    Map<String, Object> response = lambda.handleRequest(Map.of("httpMethod", "POST", "body",
+        "{\"message\":\"Hello\",\"shift\":\"3\"}"), null);
+    assertEquals(502, response.get("statusCode"));
+    assertEquals(1, sqsEvents.size());
   }
 }
