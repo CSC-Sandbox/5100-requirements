@@ -1,6 +1,8 @@
 package edu.calpoly.lambdalab.aidenrodriguez;
 
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -123,5 +125,41 @@ class EncryptMessageLambdaTest {
         "{\"message\":\"Test\",\"shift\":\"1\"}"), null);
     assertEquals(500, response.get("statusCode"));
     assertTrue(response.get("body").toString().contains("Unable to persist result"));
+  }
+
+  @Test
+  void publishesCorrelatedEventToSnsAfterPersistence() {
+    List<String> events = new ArrayList<>();
+    EncryptMessageLambda.Storage storage = new EncryptMessageLambda.Storage() {
+      public void save(String id, String json) { }
+      public String get(String id) { return null; }
+    };
+    EncryptMessageLambda lambda = new EncryptMessageLambda(storage, events::add);
+
+    Map<String, Object> response = lambda.handleRequest(Map.of("httpMethod", "POST", "body",
+        "{\"message\":\"Hello\",\"shift\":\"3\"}"), null);
+    assertEquals(200, response.get("statusCode"));
+    assertEquals(1, events.size());
+    String responseBody = response.get("body").toString();
+    String id = responseBody.replaceFirst(".*\\\"id\\\":\\\"([^\\\"]+)\\\".*", "$1");
+    assertTrue(events.get(0).contains("\"id\":\"" + id + "\""));
+    assertTrue(events.get(0).contains("\"operation\":\"EncryptMessageLambda\""));
+    assertTrue(events.get(0).contains("\"result\""));
+    assertTrue(responseBody.contains("\"sns\":\"published\""));
+  }
+
+  @Test
+  void returnsUsefulErrorWhenSnsPublishingFails() {
+    EncryptMessageLambda.Storage storage = new EncryptMessageLambda.Storage() {
+      public void save(String id, String json) { }
+      public String get(String id) { return null; }
+    };
+    EncryptMessageLambda lambda = new EncryptMessageLambda(storage, json -> {
+      throw new IllegalStateException("SNS unavailable");
+    });
+    Map<String, Object> response = lambda.handleRequest(Map.of("httpMethod", "POST", "body",
+        "{\"message\":\"Hello\",\"shift\":\"3\"}"), null);
+    assertEquals(502, response.get("statusCode"));
+    assertTrue(response.get("body").toString().contains("Unable to publish SNS event"));
   }
 }

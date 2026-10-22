@@ -19,8 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class EncryptMessageLambda implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
     private static final String DEFAULT_DYNAMODB_TABLE = "csc5100-results";
+    private static final String DEFAULT_S3_BUCKET = "csc5100-results";
+    private static final String OPERATION = "EncryptMessageLambda";
     private final ObjectMapper mapper = new ObjectMapper();
     private final Storage storage;
+    private final Messaging messaging;
 
     /** Storage seam; production uses DynamoDB and tests may supply a fake. */
     interface Storage {
@@ -28,16 +31,26 @@ public class EncryptMessageLambda implements RequestHandler<Map<String, Object>,
         String get(String id);
     }
 
+    /** SNS is deliberately a separate branch from the later SQS integration. */
+    interface Messaging {
+        void publishSns(String json);
+    }
+
     /**
-     * Uses the configured A04 DynamoDB table in Lambda. Local runs without
-     * that configuration retain in-memory lookup support.
+     * Uses the configured A04 DynamoDB and S3 destinations in Lambda. Local
+     * runs without that configuration retain in-memory lookup support.
      */
     public EncryptMessageLambda() {
-        this(defaultStorage());
+        this(defaultStorage(), defaultMessaging());
     }
 
     EncryptMessageLambda(Storage storage) {
+        this(storage, null);
+    }
+
+    EncryptMessageLambda(Storage storage, Messaging messaging) {
         this.storage = storage;
+        this.messaging = messaging;
     }
 
     @Override
@@ -68,12 +81,26 @@ public class EncryptMessageLambda implements RequestHandler<Map<String, Object>,
             output.put("encrypted", encrypted);
             output.put("shift", shift);
             output.put("id", id);
+            output.put("messaging", Map.of("sns", messaging == null ? "not_configured" : "published"));
             String json = mapper.writeValueAsString(output);
             try {
                 storage.save(id, json);
             } catch (RuntimeException e) {
                 log(context, "Unable to persist encryption result", e);
                 return httpResponse(500, "{\"error\":\"Unable to persist result\"}");
+            }
+            if (messaging != null) {
+                String eventJson = mapper.writeValueAsString(Map.of(
+                        "id", id,
+                        "operation", OPERATION,
+                        "result", output));
+                try {
+                    messaging.publishSns(eventJson);
+                    output.put("messaging", Map.of("sns", "published"));
+                } catch (RuntimeException e) {
+                    log(context, "Unable to publish SNS event", e);
+                    return httpResponse(502, "{\"error\":\"Unable to publish SNS event\"}");
+                }
             }
             return httpResponse(200, json);
         } catch (IllegalArgumentException | JsonProcessingException e) {
@@ -135,12 +162,24 @@ public class EncryptMessageLambda implements RequestHandler<Map<String, Object>,
 
     private static Storage defaultStorage() {
         String table = System.getenv("A04_DYNAMODB_TABLE");
-        if (table != null && !table.isBlank()) {
-            return new EncryptMessageStorage(table);
+        String bucket = System.getenv("A04_S3_BUCKET");
+        if ((table != null && !table.isBlank()) || (bucket != null && !bucket.isBlank())) {
+            return new EncryptMessageStorage(nonBlankOrDefault(table, DEFAULT_DYNAMODB_TABLE),
+                    nonBlankOrDefault(bucket, DEFAULT_S3_BUCKET));
         }
         // AWS_LAMBDA_FUNCTION_NAME is supplied by Lambda, but not local JUnit.
         return System.getenv("AWS_LAMBDA_FUNCTION_NAME") != null
-                ? new EncryptMessageStorage(DEFAULT_DYNAMODB_TABLE) : new InMemoryStorage();
+                ? new EncryptMessageStorage(DEFAULT_DYNAMODB_TABLE, DEFAULT_S3_BUCKET)
+                : new InMemoryStorage();
+    }
+
+    private static String nonBlankOrDefault(String value, String defaultValue) {
+        return value == null || value.isBlank() ? defaultValue : value;
+    }
+
+    private static Messaging defaultMessaging() {
+        String topicArn = System.getenv("A04_SNS_TOPIC_ARN");
+        return topicArn == null || topicArn.isBlank() ? null : new EncryptMessageMessaging(topicArn);
     }
 
     private static void log(Context context, String message, Exception error) {
